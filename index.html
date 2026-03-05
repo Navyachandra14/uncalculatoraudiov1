@@ -1,0 +1,3752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The Uncalculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ══ DESIGN TOKENS ═══════════════════════════════════════════
+   All colour, spacing, and font variables live here.
+   Change a value here and it updates everywhere instantly.
+═══════════════════════════════════════════════════════════ */
+/* ══ DESIGN TOKENS ══════════════════════════════════════ */
+:root {
+  --bg:         #08111f;
+  --surface:    #0e1e35;
+  --surface2:   #162844;
+  --border:     #1e3a5f;
+  --border2:    #264d80;
+  --text:       #e8f4fd;
+  --text2:      #7ba3cc;
+  --text3:      #3d6d99;
+  --mint:       #00e5a0;
+  --mint-dim:   rgba(0,229,160,0.12);
+  --blue:       #4da6ff;
+  --blue-dim:   rgba(77,166,255,0.1);
+  --gold:       #ffd166;
+  --gold-dim:   rgba(255,209,102,0.1);
+  --red:        #ff6b6b;
+  --red-dim:    rgba(255,107,107,0.1);
+  --green:      #06d6a0;
+  --green-dim:  rgba(6,214,160,0.12);
+  --radius:     16px;
+  --radius-sm:  10px;
+  --nav:        64px;
+  --font-head:  'Syne', sans-serif;
+  --font-body:  'DM Sans', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+}
+
+/* ══ BASE STYLES ══════════════════════════════════════════════
+   Reset, body, scroll areas, buttons, app shell,
+   bottom nav, typography, progress bar, landing screen.
+═══════════════════════════════════════════════════════════ */
+/* ══ RESET & BASE ═══════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { height:100%; overflow:hidden; background:var(--bg); }
+body {
+  min-height:100vh; min-height:100svh;
+  height:100%; max-height:100vh; max-width:100vw;
+  overflow:hidden; overflow-x:hidden;
+  background:var(--bg); color:var(--text);
+  font-family:var(--font-body); line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+button { font-family:var(--font-body); cursor:pointer; }
+.hidden { display:none !important; }
+
+/* ══ SCROLLABLE AREAS ═══════════════════════════════════ */
+.scroll-area {
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+}
+.scroll-area::-webkit-scrollbar { width:3px; }
+.scroll-area::-webkit-scrollbar-track { background:transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ══ TOAST ══════════════════════════════════════════════ */
+#toast {
+  position:fixed; bottom:calc(var(--nav) + 20px); left:50%;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--surface2); border:1px solid var(--border2);
+  color:var(--text); padding:10px 20px; border-radius:100px;
+  font-size:0.82rem; font-weight:600; letter-spacing:0.02em;
+  opacity:0; transition:all 0.28s ease; z-index:9999;
+  pointer-events:none; white-space:nowrap; box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ══ LANDING ════════════════════════════════════════════ */
+#view-landing {
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:44px 28px 36px;
+  background:radial-gradient(ellipse 100% 70% at 50% 0%, rgba(0,229,160,0.06) 0%, transparent 65%),
+             radial-gradient(ellipse 60% 40% at 80% 100%, rgba(77,166,255,0.05) 0%, transparent 60%),
+             var(--bg);
+  z-index:100;
+}
+.landing-eyebrow {
+  font-size:0.7rem; letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--mint); margin-bottom:16px; font-weight:600;
+}
+.landing-title {
+  font-family:var(--font-head); font-size:clamp(3rem,11vw,4.2rem);
+  font-weight:800; text-align:center; line-height:0.95;
+  margin-bottom:8px; letter-spacing:-0.02em;
+}
+.landing-title .line1 { display:block; color:var(--text); }
+.landing-title .line2 {
+  display:block;
+  background:linear-gradient(135deg, var(--mint) 0%, var(--blue) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  /* padding prevents first/last letter from being clipped by overflow:hidden */
+  padding:0 8px;
+  margin:0 -8px;
+}
+.landing-sub {
+  color:var(--text2); font-size:0.95rem; text-align:center;
+  margin-bottom:52px; max-width:260px; line-height:1.6;
+}
+.landing-cta { width:100%; max-width:280px; display:flex; flex-direction:column; gap:12px; }
+
+/* ══ BUTTONS ════════════════════════════════════════════ */
+.btn {
+  padding:15px 24px; border-radius:var(--radius-sm); font-size:0.92rem;
+  font-weight:600; border:1.5px solid var(--border);
+  background:var(--surface); color:var(--text);
+  transition:all 0.15s ease; min-height:52px;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.btn:active { transform:scale(0.97); opacity:0.85; }
+.btn-primary {
+  background:var(--mint); border-color:var(--mint); color:#08111f;
+  font-weight:700;
+}
+.btn-primary:active { background:#00c788; }
+.btn-ghost { background:transparent; border-color:var(--border); color:var(--text2); }
+.btn-danger { background:var(--red-dim); border-color:var(--red); color:var(--red); }
+.btn-block { width:100%; }
+.btn-sm { padding:10px 16px; font-size:0.82rem; min-height:40px; }
+
+/* ══ APP SHELL ══════════════════════════════════════════ */
+#view-app {
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column;
+  width:100%; max-width:100%; overflow:hidden;
+}
+@media (min-width:540px) {
+  #view-app {
+    max-width:480px; left:50%; right:auto;
+    transform:translateX(-50%);
+    box-shadow:0 0 80px rgba(0,0,0,.7);
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+  }
+  #toast { max-width:440px; }
+}
+
+/* ══ TABS ═══════════════════════════════════════════════ */
+.tab-pane {
+  flex:1; overflow-y:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding:20px 18px calc(var(--nav) + 36px);
+  width:100%; box-sizing:border-box;
+}
+.tab-pane + .tab-pane { display:none; }
+
+/* ══ BOTTOM NAV ═════════════════════════════════════════ */
+.bottom-nav {
+  flex-shrink:0; height:var(--nav);
+  background:var(--surface); border-top:1px solid var(--border);
+  display:flex; align-items:stretch;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  width:100%;
+}
+.nav-btn {
+  flex:1; background:none; border:none; color:var(--text3);
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:4px; font-size:0.62rem;
+  font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+  transition:color 0.2s;
+}
+.nav-btn svg { width:21px; height:21px; stroke-width:1.7; }
+.nav-btn.active { color:var(--mint); }
+.nav-btn.active svg { stroke-width:2.3; }
+
+/* ══ TYPOGRAPHY ═════════════════════════════════════════ */
+.page-title {
+  font-family:var(--font-head); font-size:1.7rem; font-weight:800;
+  letter-spacing:-0.02em; margin-bottom:20px; line-height:1.1;
+}
+
+/* ══ PROGRESS BAR ═══════════════════════════════════════ */
+.pbar-wrap {
+  background:var(--border); border-radius:100px; height:3px;
+  margin-bottom:20px; overflow:hidden;
+}
+.pbar-fill {
+  height:100%;
+  background:linear-gradient(to right, var(--mint), var(--blue));
+  border-radius:100px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+
+/* ══ CHAPTER STYLES ═══════════════════════════════════════════
+   Chapter list cards, chapter detail view, quiz options,
+   practice cards, feedback strips, stats grid, settings rows.
+═══════════════════════════════════════════════════════════ */
+/* ══ CHAPTER LIST ════════════════════════════════════════ */
+.ch-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 14px 14px 0;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin-bottom:8px;
+  cursor:pointer; transition:border-color 0.15s, transform 0.12s;
+  position:relative; overflow:hidden;
+}
+.ch-item::before {
+  content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+}
+.diff-easy   .ch-item::before, .ch-item.diff-easy::before   { background:var(--mint); }
+.diff-medium .ch-item::before, .ch-item.diff-medium::before { background:var(--gold); }
+.diff-hard   .ch-item::before, .ch-item.diff-hard::before   { background:var(--red); }
+.ch-item.locked { opacity:0.38; cursor:not-allowed; }
+.ch-item:not(.locked):active { transform:scale(0.98); border-color:var(--mint); }
+
+.ch-num-col {
+  width:48px; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; padding-left:12px;
+}
+.ch-num {
+  font-family:var(--font-mono); font-size:0.72rem; color:var(--text3);
+  font-weight:600;
+}
+.ch-body { flex:1; min-width:0; }
+.ch-title {
+  font-size:0.88rem; font-weight:600; line-height:1.3;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.ch-sub { font-size:0.72rem; color:var(--text3); margin-top:3px; }
+.ch-right { padding-right:12px; flex-shrink:0; }
+.badge-done {
+  font-size:0.65rem; font-weight:700; padding:4px 9px; border-radius:100px;
+  background:var(--green-dim); color:var(--green); letter-spacing:0.04em;
+}
+.badge-lock { font-size:1rem; }
+
+/* ══ CHAPTER DETAIL ══════════════════════════════════════ */
+.back-row {
+  display:flex; align-items:center; gap:6px; color:var(--text2);
+  font-size:0.85rem; font-weight:600; cursor:pointer;
+  padding:8px 0 16px; min-height:48px;
+}
+.back-row svg { width:18px; height:18px; flex-shrink:0; }
+
+.ch-detail-title {
+  font-family:var(--font-head); font-size:1.35rem; font-weight:800;
+  letter-spacing:-0.02em; line-height:1.2; margin-bottom:4px;
+}
+.ch-detail-goal {
+  font-size:0.82rem; color:var(--text2); font-style:italic;
+  margin-bottom:18px; line-height:1.5; padding-left:12px;
+  border-left:2px solid var(--border2);
+}
+
+/* Step pills */
+.step-pills { display:flex; gap:6px; margin-bottom:20px; overflow-x:auto; padding-bottom:2px; }
+.step-pills::-webkit-scrollbar { display:none; }
+.pill {
+  flex-shrink:0; padding:5px 14px; border-radius:100px; font-size:0.7rem;
+  font-weight:700; letter-spacing:0.05em; text-transform:uppercase;
+  border:1.5px solid var(--border); color:var(--text3); background:transparent;
+  transition:all 0.2s;
+}
+.pill.active { border-color:var(--mint); color:var(--mint); background:var(--mint-dim); }
+.pill.done   { border-color:var(--green); color:var(--green); }
+
+/* Content card */
+.content-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px; margin-bottom:14px;
+}
+.card-label {
+  font-size:0.62rem; text-transform:uppercase; letter-spacing:0.18em;
+  color:var(--mint); font-weight:700; margin-bottom:16px;
+}
+
+/* Concepts */
+.concept { margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border); }
+.concept:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+.concept-name { font-weight:700; font-size:0.92rem; margin-bottom:5px; color:var(--text); }
+.concept-text { font-size:0.85rem; color:var(--text2); line-height:1.65; }
+
+/* Methods */
+.method { margin-bottom:18px; }
+.method:last-child { margin-bottom:0; }
+.method-name { font-weight:700; font-size:0.92rem; margin-bottom:10px; color:var(--blue); }
+.steps-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+.steps-list li {
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:0.84rem; color:var(--text2); line-height:1.55;
+}
+.step-dot {
+  flex-shrink:0; width:22px; height:22px; border-radius:50%;
+  background:var(--blue-dim); color:var(--blue);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.68rem; font-weight:700; font-family:var(--font-mono);
+}
+
+/* Examples */
+.example { margin-bottom:14px; }
+.example:last-child { margin-bottom:0; }
+.example-header {
+  font-size:0.82rem; font-weight:700; color:var(--gold);
+  margin-bottom:10px; line-height:1.4;
+}
+.example-steps { list-style:none; display:flex; flex-direction:column; gap:4px; }
+.example-steps li {
+  font-family:var(--font-mono); font-size:0.78rem; color:var(--text2);
+  padding:4px 10px; background:rgba(0,0,0,0.25); border-radius:6px;
+  line-height:1.5;
+}
+
+/* Nav footer */
+.card-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:20px; padding-top:16px; border-top:1px solid var(--border);
+}
+.step-label { font-size:0.75rem; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
+
+/* ══ QUIZ ════════════════════════════════════════════════ */
+.quiz-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:10px;
+}
+.quiz-meta { font-size:0.72rem; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
+.quiz-q {
+  font-family:var(--font-mono); font-size:1rem; font-weight:600;
+  color:var(--text); margin:16px 0 20px; line-height:1.5;
+  padding:14px 16px; background:rgba(0,0,0,0.2); border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+  overflow-wrap:break-word; word-break:break-word;
+}
+.quiz-option {
+  display:block; width:100%; text-align:left;
+  padding:14px 16px; margin-bottom:9px;
+  background:rgba(255,255,255,0.025); border:1.5px solid var(--border);
+  border-radius:var(--radius-sm); color:var(--text);
+  font-size:0.88rem; font-family:var(--font-mono); font-weight:600;
+  transition:all 0.14s; min-height:52px;
+}
+.quiz-option:active { transform:scale(0.98); }
+.quiz-option.selected { border-color:var(--blue); background:var(--blue-dim); color:var(--blue); }
+.quiz-option.correct  { border-color:var(--green); background:var(--green-dim); color:var(--green); }
+.quiz-option.wrong    { border-color:var(--red); background:var(--red-dim); color:var(--red); }
+.quiz-option:disabled,.quiz-option.locked-opt { pointer-events:none; }
+.submit-btn-wrap { margin-top:6px; }
+
+/* Score Screen */
+.score-wrap { text-align:center; padding:10px 0 20px; }
+.score-ring-container { width:120px; height:120px; position:relative; margin:0 auto 20px; }
+.score-ring-container svg { transform:rotate(-90deg); display:block; }
+.score-number {
+  position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; font-family:var(--font-mono); font-size:1.6rem; font-weight:600;
+}
+.score-title {
+  font-family:var(--font-head); font-size:1.5rem; font-weight:800; margin-bottom:6px;
+}
+.score-sub { color:var(--text2); font-size:0.88rem; margin-bottom:28px; }
+
+/* ══ PRACTICE ═══════════════════════════════════════════ */
+.prac-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--mint-dim); color:var(--mint);
+  font-size:0.7rem; font-weight:700; padding:5px 12px;
+  border-radius:100px; margin-bottom:14px; letter-spacing:0.04em;
+  text-transform:uppercase; border:1px solid rgba(0,229,160,0.2);
+}
+.prac-q {
+  font-family:var(--font-mono); font-size:1rem; font-weight:600;
+  color:var(--text); margin-bottom:20px; line-height:1.5;
+  padding:14px 16px; background:rgba(0,0,0,0.2); border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+  overflow-wrap:break-word; word-break:break-word;
+}
+.feedback-strip {
+  display:none; padding:12px 16px; border-radius:var(--radius-sm);
+  font-size:0.88rem; font-weight:600; margin-top:12px;
+  align-items:center; gap:8px;
+}
+.feedback-strip.correct {
+  background:var(--green-dim); color:var(--green);
+  border:1px solid rgba(6,214,160,0.25); display:flex;
+}
+.feedback-strip.wrong {
+  background:var(--red-dim); color:var(--red);
+  border:1px solid rgba(255,107,107,0.25); display:flex;
+}
+.empty-prac {
+  text-align:center; padding:56px 20px 20px;
+}
+.empty-icon { font-size:3.5rem; margin-bottom:16px; }
+.empty-title { font-family:var(--font-head); font-size:1.3rem; font-weight:800; margin-bottom:8px; }
+.empty-desc { color:var(--text2); font-size:0.88rem; max-width:230px; margin:0 auto 28px; line-height:1.6; }
+
+/* ══ STATS ══════════════════════════════════════════════ */
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:18px 14px; text-align:center;
+}
+.stat-val {
+  font-family:var(--font-mono); font-size:1.9rem; font-weight:600;
+  color:var(--mint); line-height:1;
+}
+.stat-name { font-size:0.68rem; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; margin-top:6px; font-weight:600; }
+
+/* ══ SETTINGS ════════════════════════════════════════════ */
+.settings-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden; margin-bottom:14px;
+}
+.settings-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 18px; border-bottom:1px solid var(--border);
+}
+.settings-row:last-child { border-bottom:none; }
+.settings-label { font-size:0.9rem; font-weight:600; }
+.settings-desc { font-size:0.75rem; color:var(--text3); margin-top:3px; }
+.version-tag { font-family:var(--font-mono); font-size:0.75rem; color:var(--text3); }
+
+
+/* ══ COMPONENT STYLES ══════════════════════════════════════════
+   Hint drawer, countdown timer, voice button,
+   interactive teach cards, diagram containers, animations.
+═══════════════════════════════════════════════════════════ */
+/* ══ HINT DRAWER ════════════════════════════════════════ */
+#hint-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.6);
+  z-index:500; display:none; align-items:flex-end;
+  backdrop-filter:blur(3px);
+}
+#hint-overlay.open { display:flex; }
+#hint-drawer {
+  width:100%; max-height:80vh; background:var(--surface2);
+  border-radius:20px 20px 0 0; border-top:1px solid var(--border2);
+  display:flex; flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.34,1.2,.64,1);
+}
+#hint-overlay.open #hint-drawer { transform:translateY(0); }
+.hint-handle { width:36px; height:4px; background:var(--border2); border-radius:2px; margin:12px auto 0; }
+.hint-header { display:flex; justify-content:space-between; align-items:center; padding:12px 18px 8px; }
+.hint-title { font-family:var(--font-head); font-size:.95rem; font-weight:800; color:var(--blue); }
+.hint-close { background:none; border:none; color:var(--text3); font-size:1.3rem; padding:4px 8px; cursor:pointer; line-height:1; }
+.hint-close:active { color:var(--text); }
+.hint-body { overflow-y:auto; -webkit-overflow-scrolling:touch; padding:4px 18px 32px; flex:1; }
+.hint-section { margin-bottom:16px; }
+.hint-section-label { font-size:.58rem; text-transform:uppercase; letter-spacing:.18em; color:var(--blue); font-weight:700; margin-bottom:8px; display:block; }
+.hint-method-name { font-weight:700; font-size:.84rem; color:var(--text); margin-bottom:6px; }
+.hint-steps { list-style:none; display:flex; flex-direction:column; gap:5px; margin-bottom:10px; }
+.hint-steps li { display:flex; gap:8px; font-size:.78rem; color:var(--text2); line-height:1.5; align-items:flex-start; }
+.hint-dot { flex-shrink:0; width:17px; height:17px; border-radius:50%; background:var(--blue-dim); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:.58rem; font-weight:700; font-family:var(--font-mono); margin-top:2px; }
+.hint-ex { margin-bottom:8px; }
+.hint-ex-hd { font-size:.76rem; font-weight:700; color:var(--gold); margin-bottom:3px; }
+.hint-ex-steps { list-style:none; }
+.hint-ex-steps li { font-family:var(--font-mono); font-size:.7rem; color:var(--text2); padding:3px 8px; background:rgba(0,0,0,.25); border-radius:5px; margin-bottom:2px; line-height:1.4; }
+.hint-btn { display:inline-flex; align-items:center; gap:5px; background:var(--blue-dim); border:1px solid rgba(77,166,255,.25); color:var(--blue); border-radius:var(--radius-sm); padding:7px 12px; font-size:.76rem; font-weight:700; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.hint-btn:active { transform:scale(.96); opacity:.85; }
+.hint-btn svg { width:13px; height:13px; stroke-width:2.2; flex-shrink:0; }
+/* ══ TIMER ══════════════════════════════════════════════ */
+.timer-wrap { margin-bottom:10px; display:none; }
+.timer-wrap.show { display:block; }
+.timer-top { display:flex; justify-content:flex-end; margin-bottom:4px; }
+.timer-display { font-family:var(--font-mono); font-size:.66rem; color:var(--text3); font-weight:600; }
+.timer-display.danger { color:var(--red); }
+.timer-bar-wrap { height:3px; background:var(--border); border-radius:100px; overflow:hidden; }
+.timer-bar-fill { height:100%; background:var(--mint); border-radius:100px; transition:width 1s linear, background .4s; }
+.timer-bar-fill.danger { background:var(--red); }
+/* ══ VOICE BUTTON ═══════════════════════════════════════ */
+.voice-btn {
+  display:flex; align-items:center; gap:5px;
+  background:none; border:1px solid var(--border);
+  color:var(--text3); border-radius:100px;
+  padding:6px 12px; font-size:.72rem; font-weight:600;
+  cursor:pointer; transition:all .2s; letter-spacing:.03em;
+  white-space:nowrap;
+}
+.voice-btn.speaking {
+  background:rgba(0,229,160,.1); border-color:var(--mint); color:var(--mint);
+}
+.voice-btn svg { width:13px; height:13px; stroke-width:2; flex-shrink:0; }
+.voice-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--mint);
+  animation:pulse-dot 1s ease-in-out infinite; display:none;
+}
+.voice-btn.speaking .voice-dot { display:inline-block; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+/* ══ INTERACTIVE TEACH ═══════════════════════════════════ */
+.teach-item {
+  border-left:3px solid var(--blue-dim); padding:12px 14px;
+  margin-bottom:10px; border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  background:rgba(0,0,0,.15); transition:border-color .3s;
+}
+.teach-item.active { border-left-color:var(--blue); }
+.teach-item.prev { opacity:.5; border-left-color:var(--border); }
+.teach-label {
+  font-size:.62rem; text-transform:uppercase; letter-spacing:.14em;
+  color:var(--blue); font-weight:700; margin-bottom:5px;
+}
+.teach-text { font-size:.88rem; color:var(--text); line-height:1.6; }
+.teach-step-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; border-radius:50%;
+  background:var(--blue-dim); color:var(--blue);
+  font-size:.65rem; font-weight:700; font-family:var(--font-mono);
+  margin-right:8px; flex-shrink:0; vertical-align:middle;
+}
+.teach-nav {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--border);
+}
+.teach-counter { font-family:var(--font-mono); font-size:.68rem; color:var(--text3); }
+.anim-slide-in { animation:slide-in .28s cubic-bezier(.34,1.2,.64,1) both; }
+@keyframes slide-in { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:none} }
+
+/* ══ DIAGRAMS ════════════════════════════════════════════ */
+.diagram-wrap {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden; margin-bottom:14px;
+}
+.diagram-label {
+  font-size:.6rem; text-transform:uppercase; letter-spacing:.16em;
+  color:var(--mint); font-weight:700; padding:10px 16px 6px;
+  border-bottom:1px solid var(--border);
+}
+.diagram-svg-wrap { padding:12px; }
+.diagram-caption {
+  font-size:.76rem; color:var(--text2); padding:8px 16px 12px;
+  line-height:1.5; border-top:1px solid var(--border);
+}
+
+/* ══ ANIMATIONS ══════════════════════════════════════════ */
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes shake {
+  0%,100%{ transform:translateX(0); }
+  15%    { transform:translateX(-7px); }
+  30%    { transform:translateX(7px); }
+  45%    { transform:translateX(-5px); }
+  60%    { transform:translateX(5px); }
+  75%    { transform:translateX(-3px); }
+}
+@keyframes popIn {
+  0%   { transform:scale(0.8); opacity:0; }
+  70%  { transform:scale(1.04); }
+  100% { transform:scale(1); opacity:1; }
+}
+@keyframes pulse {
+  0%,100%{ box-shadow:0 0 0 0 rgba(0,229,160,0.35); }
+  50%    { box-shadow:0 0 0 8px rgba(0,229,160,0); }
+}
+.anim-up  { animation:slideUp 0.3s ease both; }
+.anim-shake { animation:shake 0.4s ease; }
+.anim-pop { animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition-duration:0.01ms !important; }
+}
+
+/* ══ PRACTICE MODE TOGGLE (Practice / Race) ═════════════════ */
+.mode-tab {
+  flex:1; padding:9px 14px; border-radius:var(--radius-sm);
+  font-size:.8rem; font-weight:700; letter-spacing:.04em;
+  border:1.5px solid var(--border); background:var(--surface);
+  color:var(--text3); cursor:pointer; transition:all .18s;
+}
+.mode-tab.active {
+  background:var(--blue-dim); border-color:var(--blue); color:var(--blue);
+}
+.mode-tab:active { transform:scale(.97); }
+
+/* ══ METHOD STEP ROWS (used in Methods and Examples cards) ══ */
+.method-step-row {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+}
+.method-step-row:last-child { border-bottom:none; padding-bottom:0; }
+.method-step-row:first-child { padding-top:4px; }
+.method-step-text {
+  font-size:.88rem; color:var(--text); line-height:1.6; flex:1;
+}
+
+/* ══ FINAL ANSWER ROW — bold green line in examples ════════ */
+.method-step-row:last-child .method-step-text strong {
+  color: var(--mint);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+.method-step-row:last-child {
+  background: rgba(0,229,160,0.04);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 10px 0 2px;
+}
+
+/* ══ METHOD SUB-HEADINGS & DIVIDERS ════════════════════════ */
+.method-subhead {
+  font-size:.7rem; font-weight:800; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--blue);
+  padding:10px 0 6px; margin-top:2px;
+}
+.method-divider {
+  height:1px; background:var(--border2);
+  margin:8px 0;
+}
+
+/* ══ PRACTICE CATEGORY GRID ════════════════════════════════ */
+.cat-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  margin-bottom:12px;
+}
+.cat-card {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:16px 12px 12px;
+  cursor:pointer; transition:all .18s; text-align:center;
+  position:relative; overflow:hidden;
+}
+.cat-card:active { transform:scale(.97); }
+.cat-card::before {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:3px; background:var(--cat-color,var(--blue));
+}
+.cat-locked { opacity:.55; cursor:default; }
+.cat-icon   { font-size:1.8rem; margin-bottom:6px; }
+.cat-name   { font-size:.8rem; font-weight:700; color:var(--text);
+              margin-bottom:6px; line-height:1.2; }
+.cat-stars  { font-size:.75rem; margin-bottom:8px; min-height:18px; }
+.cat-bar-wrap { height:4px; background:var(--border); border-radius:100px; overflow:hidden; }
+.cat-bar    { height:100%; border-radius:100px; transition:width .4s ease; }
+
+/* ══ LEVEL LIST ════════════════════════════════════════════ */
+.lv-row {
+  display:flex; align-items:center; gap:14px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--radius); padding:14px 16px;
+  cursor:pointer; transition:all .18s;
+}
+.lv-row:active { transform:scale(.98); }
+.lv-locked    { opacity:.45; cursor:default; }
+.lv-num {
+  width:42px; height:42px; border-radius:50%;
+  background:var(--surface2); border:1.5px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; flex-shrink:0; transition:background .2s;
+}
+.lv-info  { flex:1; }
+.lv-name  { font-weight:700; font-size:.88rem; color:var(--text); }
+.lv-desc  { font-size:.72rem; color:var(--text3); margin-top:2px; }
+
+/* ══ LEARN CATEGORY GRID ══════════════════════════════════ */
+#learn-cat-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;
+}
+/* chapter check marks in category */
+.ch-num[data-done="true"] {
+  background:var(--mint); color:#000; border-color:var(--mint);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ TOAST ════════════════════════════════════════════════ -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══ LANDING VIEW ══════════════════════════════════════════ -->
+<div id="view-landing">
+  <p class="landing-eyebrow">Mental Math Training</p>
+  <h1 class="landing-title" id="landing-title-tap">
+    <span class="line1">The</span>
+    <span class="line2">Uncalculator</span>
+  </h1>
+  <p class="landing-sub">19 real-world techniques to master mental math — no calculator needed.</p>
+  <div class="landing-cta">
+    <button class="btn btn-primary btn-block" onclick="App.start()">
+      Start Learning
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn btn-ghost btn-block" onclick="App.start(); Nav.go('stats')">View Progress</button>
+  </div>
+</div>
+
+<!-- ══ APP VIEW ═══════════════════════════════════════════════ -->
+<div id="view-app" class="hidden">
+
+  <!-- ── LEARN TAB ──────────────────────────────────────── -->
+  <div id="tab-learn" class="tab-pane scroll-area">
+    <!-- Level 1: category grid -->
+    <div id="screen-categories">
+      <h1 class="page-title">Learn</h1>
+      <div class="pbar-wrap" style="margin-bottom:14px"><div class="pbar-fill" id="global-pbar" style="width:0%"></div></div>
+      <div id="learn-cat-grid"></div>
+    </div>
+    <!-- Level 2: chapters within a category -->
+    <div id="screen-list" class="hidden">
+      <div class="back-row" id="back-to-cats" onclick="ChapterList.renderCategories()" role="button" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-to-cats-label">Categories</span>
+      </div>
+      <div id="cat-header-row" style="display:flex;align-items:center;gap:10px;margin-bottom:14px"></div>
+      <div id="chapter-list"></div>
+    </div>
+    <!-- Level 3: chapter detail -->
+    <div id="screen-detail" class="hidden">
+      <div class="back-row" id="back-to-cat" onclick="ChapterList.backFromDetail()" role="button" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-to-cat-label">Back</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;">
+        <div>
+          <h2 class="ch-detail-title" id="detail-title" style="margin-bottom:2px"></h2>
+          <p class="ch-detail-goal" id="detail-goal"></p>
+        </div>
+        <button class="voice-btn" id="voice-btn" onclick="Voice.toggle()" aria-label="Toggle voice narration" style="margin-top:4px;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Voice
+          <span class="voice-dot"></span>
+        </button>
+      </div>
+      <div class="step-pills" id="step-pills"></div>
+      <div id="step-content"></div>
+    </div>
+  </div>
+
+  <!-- ── PRACTICE TAB ───────────────────────────────────── -->
+  <div id="tab-practice" class="tab-pane scroll-area" style="display:none">
+
+    <!-- mode toggle: Practice / Race -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="mode-btn-practice" class="mode-tab active" onclick="PracticeNav.show('practice')">⚡ Practice</button>
+      <button id="mode-btn-race"     class="mode-tab"        onclick="PracticeNav.show('race')">🏁 Race</button>
+    </div>
+
+    <!-- ── PRACTICE MODE (owned entirely by practice.js) ── -->
+    <div id="mode-practice">
+      <div id="prac-body"></div>
+      <div class="pbar-wrap" id="prac-pbar-wrap" style="display:none"><div class="pbar-fill" id="prac-pbar"></div></div>
+      <div class="feedback-strip" id="prac-feedback" style="display:none">
+        <span id="prac-fb-icon"></span><span id="prac-fb-text"></span>
+      </div>
+    </div>
+
+    <!-- ── RACE MODE ── -->
+    <div id="mode-race" style="display:none">
+      <div id="race-timer-bar-wrap" style="display:none;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-weight:700">Time</span>
+          <span id="race-timer-display" style="font-family:var(--font-mono);font-size:.8rem;font-weight:700;color:var(--text2)">3:00</span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
+          <div id="race-timer-bar" style="height:100%;width:100%;background:var(--mint);border-radius:100px;transition:width 1s linear,background .4s"></div>
+        </div>
+      </div>
+      <div id="race-header-row" style="display:none;margin-bottom:12px;font-family:var(--font-mono);font-size:.78rem;color:var(--text2);font-weight:600">
+        <span id="race-score-display">✓ 0 · 0 answered</span>
+      </div>
+      <div id="race-body"></div>
+    </div>
+
+  </div>
+
+  <!-- ── STATS TAB ──────────────────────────────────────── -->
+  <div id="tab-stats" class="tab-pane scroll-area" style="display:none">
+    <h1 class="page-title">My Progress</h1>
+    <div class="stat-grid">
+      <div class="stat-card anim-up"><div class="stat-val" id="s-done">0</div><div class="stat-name">Chapters Done</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.06s"><div class="stat-val" id="s-pct">0%</div><div class="stat-name">Complete</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.12s"><div class="stat-val" id="s-acc">—</div><div class="stat-name">Accuracy</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.18s"><div class="stat-val" id="s-att">0</div><div class="stat-name">Questions</div></div>
+    </div>
+    <div class="content-card" style="text-align:center;padding:20px;">
+      <div class="pbar-wrap" style="margin-bottom:10px;"><div class="pbar-fill" id="stats-pbar" style="width:0%"></div></div>
+      <p style="font-size:0.82rem;color:var(--text3);">Complete chapters in Learn to track your mastery.</p>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS TAB ───────────────────────────────────── -->
+  <div id="tab-settings" class="tab-pane scroll-area" style="display:none">
+    <h1 class="page-title">Settings</h1>
+    <div class="settings-card">
+      <div class="settings-row">
+        <div><div class="settings-label">Sound Effects</div><div class="settings-desc">Chime for correct, buzz for wrong</div></div>
+        <button id="sound-toggle-btn" class="btn btn-sm" onclick="Settings.toggleSound()" style="min-width:64px">On</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Quiz Timer</div><div class="settings-desc">60s countdown per question</div></div>
+        <button id="timer-toggle-btn" class="btn btn-sm" onclick="Settings.toggleTimer()" style="min-width:64px">On</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Reset All Progress</div><div class="settings-desc">Clears chapters, stats, and streaks</div></div>
+        <button class="btn btn-danger btn-sm" onclick="Settings.initiateReset()">Reset</button>
+      </div>
+    </div>
+    <div id="reset-confirm" class="content-card hidden" style="border-color:var(--red);">
+      <p style="color:var(--red);font-size:0.88rem;margin-bottom:14px;font-weight:600;">⚠️ This cannot be undone. Delete everything?</p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger btn-block" onclick="Settings.confirmReset()">Yes, Delete All</button>
+        <button class="btn btn-ghost btn-block" onclick="Settings.cancelReset()">Cancel</button>
+      </div>
+    </div>
+    <div class="settings-card" style="margin-top:4px;">
+      <div class="settings-row">
+        <div><div class="settings-label">The Uncalculator</div><div class="settings-desc">Survival math for the modern mind</div></div>
+        <span class="version-tag">v2.0</span>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Chapters</div><div class="settings-desc">19 techniques, Easy → Hard</div></div>
+        <span class="version-tag">19</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAV ─────────────────────────────────────── -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-tab="learn" onclick="Nav.go('learn')" aria-label="Learn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Learn
+    </button>
+    <button class="nav-btn" data-tab="practice" onclick="Nav.go('practice')" aria-label="Practice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Practice
+    </button>
+    <button class="nav-btn" data-tab="stats" onclick="Nav.go('stats')" aria-label="Stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Stats
+    </button>
+    <button class="nav-btn" data-tab="settings" onclick="Nav.go('settings')" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- ══ HINT DRAWER ════════════════════════════════════════════ -->
+<div id="hint-overlay" onclick="Hint.closeIfOutside(event)">
+  <div id="hint-drawer">
+    <div class="hint-handle"></div>
+    <div class="hint-header">
+      <span class="hint-title" id="hint-ch-name">Method &amp; Examples</span>
+      <button class="hint-close" onclick="Hint.close()" aria-label="Close">✕</button>
+    </div>
+    <div class="hint-body" id="hint-body"></div>
+  </div>
+</div>
+
+<script>
+/* ══ DATA ═════════════════════════════════════════════════════
+   CHAPTERS  — list of all 19 chapters (id, title, difficulty)
+   DATA      — full content for each chapter:
+               goal, concepts, methods, examples, questions
+═══════════════════════════════════════════════════════════ */
+const CHAPTERS = [
+  {id:"ch01",title:"The Low Battery Nightmare",difficulty:"Easy"},
+  {id:"ch02",title:"The Human Register",difficulty:"Easy"},
+  {id:"ch03",title:"The Power of Two",difficulty:"Medium"},
+  {id:"ch04",title:"The Checksum",difficulty:"Medium"},
+  {id:"ch05",title:"The Magic 11",difficulty:"Hard"},
+  {id:"ch06",title:"The Dozen & The Tip",difficulty:"Hard"},
+  {id:"ch07",title:"The Discount Hunter",difficulty:"Hard"},
+  {id:"ch08",title:"The Growth Hacker",difficulty:"Hard"},
+  {id:"ch09",title:"The Daily Rate",difficulty:"Hard"},
+  {id:"ch10",title:"The Universal Key",difficulty:"Hard"},
+  {id:"ch11",title:"The Unit Cost",difficulty:"Hard"},
+  {id:"ch12",title:"The Team Split",difficulty:"Hard"},
+  {id:"ch13",title:"Instant Squares",difficulty:"Hard"},
+  {id:"ch14",title:"The Pivot",difficulty:"Hard"},
+  {id:"ch15",title:"The Duplex Drive",difficulty:"Hard"},
+  {id:"ch16",title:"The Cube Root Hack",difficulty:"Hard"},
+  {id:"ch17",title:"The Equity Split",difficulty:"Hard"},
+  {id:"ch18",title:"The Reverse Audit",difficulty:"Hard"},
+  {id:"ch19",title:"The Trader's Compound",difficulty:"Hard"}
+];
+
+const DATA = {
+"ch01":{
+  goal:"Stop doing math like a calculator. Start doing it like a human.",
+  concepts:[
+    {name:"The Stacking Method",text:"Column addition — write numbers vertically, work right to left. Perfect for paper. Terrible for your brain under pressure."},
+    {name:"Cognitive Load",text:"Under pressure, working memory shuts down. The moment you try to carry the one, you've already forgotten the first number. That's biology — not stupidity."},
+    {name:"Left-to-Right Processing",text:"We read left to right. We say numbers left to right. So why calculate right to left? We're not. Not anymore."},
+    {name:"The Two Buckets",text:"Two buckets. Dollars go in one. Cents go in the other. Never mix them until the very end. That's the whole technique."}
+  ],
+  methods:[
+    {name:"The Two-Bucket Method",steps:[
+      "Split every amount into Dollars and Cents — before adding anything.",
+      "Add all the dollar amounts. Ignore everything after the decimal point. Park that total.",
+      "Add all the cent amounts separately. If they go over a dollar, that's fine.",
+      "Merge: combine your dollar total and cent total for the final answer."
+    ]}
+  ],
+  examples:[
+    {hd:"Cereal $3.99 + Coffee $2.75",steps:["Dollars: 3 + 2 = 5","Cents: 99 + 75 = 174 → $1.74","<strong>$5.00 + $1.74 = $6.74</strong>"]},
+    {hd:"Apples $1.90 + Oranges $1.50 + Banana $1.05",steps:["Dollars: 1 + 1 + 1 = 3","Cents: 90 + 50 + 5 = 145 → $1.45","<strong>$3.00 + $1.45 = $4.45</strong>"]},
+    {hd:"Salad $12.50 + Smoothie $4.75",steps:["Dollars: 12 + 4 = 16","Cents: 50 + 75 = 125 → $1.25","<strong>$16.00 + $1.25 = $17.25</strong>"]}
+  ],
+  qs:[
+    {q:"$2.20 + $1.30",a:"$3.50"},{q:"$5.10 + $3.40",a:"$8.50"},
+    {q:"$4.25 + $2.50",a:"$6.75"},{q:"$10.50 + $3.25",a:"$13.75"},
+    {q:"$6.99 + $2.01",a:"$9.00"},{q:"$7.50 + $4.50",a:"$12.00"},
+    {q:"$12.30 + $1.60",a:"$13.90"},{q:"$8.75 + $5.25",a:"$14.00"},
+    {q:"$3.45 + $2.45",a:"$5.90"},{q:"$15.10 + $4.95",a:"$20.05"},
+    {q:"$3.75 + $2.25",a:"$6.00"},{q:"$8.50 + $1.75",a:"$10.25"},
+    {q:"$11.99 + $3.01",a:"$15.00"},{q:"$5.60 + $4.40",a:"$10.00"},
+    {q:"$9.25 + $6.75",a:"$16.00"},{q:"$2.80 + $3.20",a:"$6.00"},
+    {q:"$14.50 + $5.50",a:"$20.00"},{q:"$7.99 + $8.01",a:"$16.00"},
+    {q:"$4.35 + $3.65",a:"$8.00"},{q:"$6.50 + $2.75",a:"$9.25"}
+  ],pass:0.8
+},
+"ch02":{
+  goal:"Become the Human Register. Never lose money at a checkout again.",
+  concepts:[
+    {name:"The Short-Change Anxiety",text:"You've felt this. The cashier gives you change and you don't check it — not because you trust them, but because you can't do the subtraction fast enough."},
+    {name:"Borrowing (The Old Way)",text:"Cross out digits, borrow from the next column, update the number. Under pressure, in public, on the fly — it falls apart immediately."},
+    {name:"All From 9, Last From 10",text:"Ancient Vedic mathematics. Every digit of the price — subtract from 9. Every digit except the last. The last one you subtract from 10. Your change appears."},
+    {name:"Complement",text:"Stop thinking 'take away'. Start thinking 'what completes this?' You're looking for the gap — not doing a subtraction. A completely different brain operation."}
+  ],
+  methods:[
+    {name:"All From 9, Last From 10 (Powers of 10)",steps:[
+      "Look at the price. Work digit by digit, left to right.",
+      "Each digit — subtract from 9.",
+      "The very last digit — subtract from 10 instead of 9.",
+      "Read the result left to right. That's your change."
+    ]},
+    {name:"Real World ($50 or non-power of 10)",steps:[
+      "Safe Cash: subtract cost dollars from bill. Reduce by 1 for the coins.",
+      "Magic Cents: apply 'All From 9, Last From 10' to just the cents.",
+      "Merge: Safe Cash + Magic Cents = your change."
+    ]}
+  ],
+  examples:[
+    {hd:"$100 − $35.75",steps:["3 from 9 = 6","5 from 9 = 4","7 from 9 = 2","5 from 10 = 5","<strong>Change = $64.25</strong>"]},
+    {hd:"$1,000 − $458",steps:["4 from 9 = 5","5 from 9 = 4","8 from 10 = 2","<strong>Change = $542</strong>"]},
+    {hd:"$50 − $25.65",steps:["$50 − $25 = $25, then −$1 = $24 (whole part)","Cents: 6 from 9 = 3, 5 from 10 = 5 → $0.35","<strong>$24 + $0.35 = $24.35</strong>"]}
+  ],
+  qs:[
+    {q:"Change from $100 — Spend $23.45",a:"$76.55"},{q:"Change from $100 — Spend $71.80",a:"$28.20"},
+    {q:"Change from $100 — Spend $54.12",a:"$45.88"},{q:"Change from $100 — Spend $88.88",a:"$11.12"},
+    {q:"Change from $100 — Spend $13.05",a:"$86.95"},{q:"Change from $50 — Spend $12.55",a:"$37.45"},
+    {q:"Change from $50 — Spend $25.25",a:"$24.75"},{q:"Change from $50 — Spend $9.40",a:"$40.60"},
+    {q:"Change from $50 — Spend $31.15",a:"$18.85"},{q:"Change from $50 — Spend $44.65",a:"$5.35"},
+    {q:"Change from $100 — Spend $42.30",a:"$57.70"},{q:"Change from $100 — Spend $67.45",a:"$32.55"},
+    {q:"Change from $100 — Spend $9.80",a:"$90.20"},{q:"Change from $100 — Spend $35.60",a:"$64.40"},
+    {q:"Change from $100 — Spend $82.15",a:"$17.85"},{q:"Change from $50 — Spend $18.70",a:"$31.30"},
+    {q:"Change from $50 — Spend $36.85",a:"$13.15"},{q:"Change from $50 — Spend $7.25",a:"$42.75"},
+    {q:"Change from $50 — Spend $22.40",a:"$27.60"},{q:"Change from $50 — Spend $41.90",a:"$8.10"}
+  ],pass:0.8
+},
+"ch03":{
+  goal:"You rarely need to multiply. Most of the time, you just need to Double.",
+  concepts:[
+    {name:"The Double-Double Rule",text:"Your brain handles symmetry effortlessly. Instead of memorising 6 × 8, double 8, then double again, then double once more. Same answer. Way easier."},
+    {name:"The Half-Half Rule",text:"Division terrifies people. 'Halving' doesn't. They're the same operation — but one sounds friendly. Use the friendly one."},
+    {name:"The Times-Five Trick",text:"Five is just ten divided by two. Multiply by ten first — add a zero. Then halve the result. That's multiplying by five, every time."}
+  ],
+  methods:[
+    {name:"Doubling (×2, ×4, ×8)",steps:[
+      "× 2: simply double it.",
+      "× 4: double, then double again.",
+      "× 8: double, double, then double once more."
+    ]},
+    {name:"Halving (÷2, ÷4)",steps:[
+      "÷ 2: halve it.",
+      "÷ 4: halve, then halve again."
+    ]},
+    {name:"Multiplying by 5",steps:[
+      "Multiply by 10 first — add a zero or shift the decimal.",
+      "Halve the result.",
+      "Done."
+    ]}
+  ],
+  examples:[
+    {hd:"14 × 4",steps:["× 2: 14 → 28","× 2: 28 → <strong>56</strong>"]},
+    {hd:"48 × 5",steps:["× 10: 48 → 480","÷ 2: 480 → <strong>240</strong>"]},
+    {hd:"$36.40 ÷ 4  (split a bill)",steps:["÷ 2: 36.40 → 18.20","÷ 2: 18.20 → <strong>$9.10 each</strong>"]}
+  ],
+  qs:[
+    {q:"$15 × 4",a:"60"},{q:"$2.50 × 4",a:"10"},{q:"$12 × 8",a:"96"},
+    {q:"$1.25 × 8",a:"10"},{q:"$35 × 4",a:"140"},{q:"Split $88 by 4",a:"22"},
+    {q:"Split $36.40 by 4",a:"9.10"},{q:"25% of $800",a:"200"},
+    {q:"18 × 5",a:"90"},{q:"64 × 5",a:"320"},{q:"$4.20 × 5",a:"21"},
+    {q:"$8 × 4",a:"32"},{q:"$6.25 × 4",a:"25"},{q:"$3.75 × 8",a:"30"},
+    {q:"Split $56 by 4",a:"14"},{q:"Split $120 by 4",a:"30"},
+    {q:"25% of $200",a:"50"},{q:"25% of $60",a:"15"},
+    {q:"14 × 5",a:"70"},{q:"48 × 5",a:"240"}
+  ],pass:0.8
+},
+"ch04":{
+  goal:"Trust your brain — because you now have a way to verify it.",
+  concepts:[
+    {name:"The Stacking Method (Problem)",text:"Even if you're good at mental arithmetic, you make mistakes. Re-checking the same way you calculated is almost useless — you'll make the same mistake twice."},
+    {name:"Cognitive Load",text:"You need a completely different check — one that bypasses the original method entirely. That's what digital roots give you."},
+    {name:"Digital Root",text:"Collapse a number to a single digit by repeatedly summing its digits. 144 → 1+4+4 = 9. That single digit is the number's fingerprint. It's preserved through multiplication."},
+    {name:"The Audit Principle",text:"If you multiply two numbers, their digital roots multiply too — collapsing to the same root as your answer. If the roots don't match, your answer is wrong."}
+  ],
+  methods:[
+    {name:"Finding a Digital Root",steps:[
+      "Add all the digits of your number together.",
+      "If the result has two digits, add those together too.",
+      "Repeat until one digit remains. That's the digital root."
+    ]},
+    {name:"Cast Out Nines (Speed Hack)",steps:[
+      "Spot a 9? Ignore it — cross it out.",
+      "See digits that sum to 9? Cross them both out.",
+      "Add whatever digits are left. That's the root."
+    ]},
+    {name:"How to Audit Your Maths",steps:[
+      "Find the digital root of each input number.",
+      "Apply the operation (+ or ×) to those roots — this is your checksum.",
+      "Find the digital root of your answer.",
+      "Checksum must equal answer's root. If not — there's an error."
+    ]}
+  ],
+  examples:[
+    {hd:"Digital root of 144",steps:["1 + 4 + 4 = 9","<strong>Digital root = 9</strong>","This number is divisible by 9 ✓"]},
+    {hd:"Check: 22 × 11 = 242",steps:["Root(22): 2+2 = 4","Root(11): 1+1 = 2","Checksum: 4 × 2 = 8","Root(242): 2+4+2 = 8","<strong>8 = 8 → Correct ✓</strong>"]},
+    {hd:"Spot the error: 31 × 12 = 362",steps:["Root(31): 3+1 = 4","Root(12): 1+2 = 3","Checksum: 4 × 3 = 12 → 3","Root(362): 3+6+2 = 11 → 2","<strong>3 ≠ 2 → Error! Real answer is 372</strong>"]}
+  ],
+  qs:[
+    {q:"Digital Root of 18",a:"9"},{q:"Digital Root of 9999",a:"9"},{q:"Digital Root of 452",a:"2"},
+    {q:"Digital Root of 3168",a:"9"},{q:"Digital Root of 12345678",a:"9"},
+    {q:"Audit: 22 × 11 = 242",a:"Correct"},{q:"Audit: 31 × 12 = 362",a:"Incorrect"},
+    {q:"Audit: 15 × 15 = 225",a:"Correct"},{q:"Audit: 123 + 45 = 158",a:"Incorrect"},
+    {q:"Audit: 44 × 4 = 176",a:"Correct"},
+    {q:"Digital Root of 27",a:"9"},{q:"Digital Root of 144",a:"9"},
+    {q:"Digital Root of 256",a:"4"},{q:"Digital Root of 1234",a:"1"},
+    {q:"Digital Root of 555",a:"6"},{q:"Digital Root of 81",a:"9"},
+    {q:"Digital Root of 37",a:"1"},{q:"Digital Root of 99",a:"9"},
+    {q:"Digital Root of 1001",a:"2"},{q:"Digital Root of 7777",a:"1"}
+  ],pass:0.8
+},
+"ch05":{
+  goal:"Stop feeling bad at math. After this chapter, you'll feel like a wizard.",
+  concepts:[
+    {name:"The Hidden Pattern",text:"11 × 23 = 253. See the 2? The 3? They're the original digits. The 5 in the middle — that's 2+3. The answer writes itself."},
+    {name:"The Sandwich Rule",text:"For any two-digit number times eleven — take the two digits, split them apart, and place their sum in the middle. That's the whole method."},
+    {name:"The Carry Rule",text:"When the middle sum is ten or more, carry the one to the left digit. 99 × 11: nine, nine, eighteen — carry one — nine becomes ten. Answer: 1,089."}
+  ],
+  methods:[
+    {name:"Split, Add, Sandwich",steps:[
+      "Split: pull the two digits apart — leave a gap in the middle.",
+      "Add: add the two digits together.",
+      "Sandwich: put that sum in the gap. Read the three-digit result."
+    ]},
+    {name:"The Carry (When Sum > 9)",steps:[
+      "Split the digits apart.",
+      "Add the two digits — if sum ≥ 10, keep only the units digit in the middle.",
+      "Add 1 to the left digit (carry it).",
+      "Read the result."
+    ]}
+  ],
+  examples:[
+    {hd:"45 × 11",steps:["Split: 4 _ 5","Middle: 4+5 = 9","<strong>= 495</strong>"]},
+    {hd:"67 × 11",steps:["Split: 6 _ 7","Middle: 6+7 = 13 → keep 3, carry 1","Left digit: 6+1 = 7","<strong>= 737</strong>"]},
+    {hd:"99 × 11",steps:["Split: 9 _ 9","Middle: 9+9 = 18 → keep 8, carry 1","Left digit: 9+1 = 10","<strong>= 1,089</strong>"]}
+  ],
+  qs:[
+    {q:"23 × 11",a:"253"},{q:"45 × 11",a:"495"},{q:"18 × 11",a:"198"},
+    {q:"61 × 11",a:"671"},{q:"81 × 11",a:"891"},{q:"49 × 11",a:"539"},
+    {q:"85 × 11",a:"935"},{q:"57 × 11",a:"627"},{q:"77 × 11",a:"847"},
+    {q:"99 × 11",a:"1089"},
+    {q:"31 × 11",a:"341"},{q:"52 × 11",a:"572"},{q:"64 × 11",a:"704"},
+    {q:"36 × 11",a:"396"},{q:"72 × 11",a:"792"},{q:"28 × 11",a:"308"},
+    {q:"53 × 11",a:"583"},{q:"67 × 11",a:"737"},{q:"29 × 11",a:"319"},
+    {q:"94 × 11",a:"1034"}
+  ],pass:0.8
+},
+"ch06":{
+  goal:"Calculate tips, yearly costs, and any × 12 or × 15 problem in seconds.",
+  concepts:[
+    {name:"Why 12 Feels Hard",text:"12 × 8. Most people either know this from memory or they're stuck. But there's no need to memorise it — because 12 is just 10 + 2. And you can always multiply by ten."},
+    {name:"Decomposition",text:"Break the hard number into easy pieces. 12 = 10 + 2. 15 = 10 + 5. Two easy multiplications, then add. Your brain handles addition far better than arbitrary times tables."},
+    {name:"The 15% Shortcut",text:"Find ten percent — shift the decimal. Find five percent — half of ten percent. Add them. That's fifteen percent. Every tip. Every discount. Every time."}
+  ],
+  methods:[
+    {name:"× 15 (The Tip) — Step + Half-Step",steps:[
+      "Find 10%: multiply by 10 — shift the decimal.",
+      "Find 5%: halve the 10% result.",
+      "Add both together."
+    ]},
+    {name:"× 12 (The Dozen) — Shift + Double",steps:[
+      "Multiply by 10: shift decimal or add zero.",
+      "Double the original number.",
+      "Add the two results."
+    ]}
+  ],
+  examples:[
+    {hd:"$8 per month × 12 months",steps:["× 10: 8 × 10 = 80","× 2: 8 × 2 = 16","<strong>80 + 16 = $96 per year</strong>"]},
+    {hd:"15% tip on a $60 meal",steps:["10%: $60 × 0.1 = $6","5%: $6 ÷ 2 = $3","<strong>$6 + $3 = $9 tip</strong>"]},
+    {hd:"15% tip on $36",steps:["10%: $3.60","5%: $1.80","<strong>$3.60 + $1.80 = $5.40</strong>"]}
+  ],
+  qs:[
+    {q:"$12/month × 12",a:"144"},{q:"$21 × 12",a:"252"},{q:"$32 × 12",a:"384"},
+    {q:"$1.50 × 12",a:"18"},{q:"$50 × 12",a:"600"},{q:"15% tip on $40",a:"6"},
+    {q:"15% tip on $60",a:"9"},{q:"15% tip on $24",a:"3.60"},
+    {q:"15% tip on $18",a:"2.70"},{q:"15% tip on $120",a:"18"},
+    {q:"18 items × $15",a:"270"},{q:"40 hrs × $15/hr",a:"600"},
+    {q:"$8/month × 12",a:"96"},{q:"$45 × 12",a:"540"},
+    {q:"$15 × 12",a:"180"},{q:"$2.50 × 12",a:"30"},
+    {q:"$75 × 12",a:"900"},{q:"15% tip on $80",a:"12"},
+    {q:"15% tip on $200",a:"30"},{q:"24 items × $15",a:"360"}
+  ],pass:0.8
+},
+"ch07":{
+  goal:"Multiply big numbers close to 100 using Gaps, not traditional multiplication.",
+  concepts:[
+    {name:"The Base 100 Insight",text:"When two numbers are both close to 100, you're not dealing with big numbers — you're dealing with small ones. The gaps between them and 100."},
+    {name:"Deficits",text:"97 is three less than 100. 94 is six less. Those gaps — three and six — are the only numbers you actually work with. The rest handles itself."},
+    {name:"The Two-Part Answer",text:"Every near-100 multiplication gives a two-part answer. Left part from cross-subtracting deficits. Right part from multiplying deficits. Two tiny calculations. One big answer."}
+  ],
+  methods:[
+    {name:"Cross-Subtract & Multiply",steps:[
+      "Find each number's deficit — how far below 100 it is.",
+      "Cross-subtract: take either number and subtract the other's deficit. Both routes give the same left side.",
+      "Multiply the two deficits together. This is the right two digits.",
+      "Combine: left side followed by right side. Pad with a zero on the left if right side is single digit."
+    ]}
+  ],
+  examples:[
+    {hd:"97 × 94",steps:["Deficits: 3 and 6","Left: 97 − 6 = 91","Right: 3 × 6 = 18","<strong>= 9,118</strong>"]},
+    {hd:"95 × 95",steps:["Both deficits: 5 and 5","Left: 95 − 5 = 90","Right: 5 × 5 = 25","<strong>= 9,025</strong>"]},
+    {hd:"87 × 98",steps:["Deficits: 13 and 2","Left: 87 − 2 = 85","Right: 13 × 2 = 26","<strong>= 8,526</strong>"]}
+  ],
+  qs:[
+    {q:"91 × 99",a:"9009"},{q:"96 × 96",a:"9216"},{q:"95 × 95",a:"9025"},
+    {q:"98 × 92",a:"9016"},{q:"97 × 93",a:"9021"},{q:"94 × 98",a:"9212"},
+    {q:"89 × 98",a:"8722"},{q:"99 × 99",a:"9801"},{q:"88 × 99",a:"8712"},
+    {q:"92 × 99",a:"9108"},
+    {q:"97 × 94",a:"9118"},{q:"93 × 93",a:"8649"},{q:"92 × 96",a:"8832"},
+    {q:"91 × 97",a:"8827"},{q:"94 × 94",a:"8836"},{q:"95 × 98",a:"9310"},
+    {q:"90 × 99",a:"8910"},{q:"96 × 93",a:"8928"},{q:"98 × 98",a:"9604"},
+    {q:"87 × 98",a:"8526"}
+  ],pass:0.8
+},
+"ch08":{
+  goal:"Calculate numbers above 100 (Surplus Numbers) using Cross-Add & Multiply.",
+  concepts:[
+    {name:"Surpluses",text:"103 is three more than 100. 106 is six more. Those small surpluses — three and six — are what you calculate with. Forget the hundreds."},
+    {name:"The Mirror Method",text:"Everything works in reverse from the below-100 method. Instead of cross-subtracting, you cross-add. Same two-part structure — just flipped."}
+  ],
+  methods:[
+    {name:"Cross-Add & Multiply (Both Above 100)",steps:[
+      "Find each number's surplus — how much MORE than 100 it is.",
+      "Cross-add: take either number and add the other's surplus.",
+      "Multiply the two surpluses. That's the right two digits.",
+      "Combine: left side then right side. Pad with zero if needed."
+    ]}
+  ],
+  examples:[
+    {hd:"103 × 106",steps:["Surpluses: +3 and +6","Left: 103 + 6 = 109","Right: 3 × 6 = 18","<strong>= 10,918</strong>"]},
+    {hd:"108 × 109",steps:["Surpluses: +8 and +9","Left: 108 + 9 = 117","Right: 8 × 9 = 72","<strong>= 11,772</strong>"]},
+    {hd:"115 × 105",steps:["Surpluses: +15 and +5","Left: 115 + 5 = 120","Right: 15 × 5 = 75","<strong>= 12,075</strong>"]}
+  ],
+  qs:[
+    {q:"102 × 103",a:"10506"},{q:"105 × 105",a:"11025"},{q:"101 × 109",a:"11009"},
+    {q:"107 × 106",a:"11342"},{q:"108 × 109",a:"11772"},{q:"104 × 104",a:"10816"},
+    {q:"110 × 105",a:"11550"},{q:"112 × 102",a:"11424"},{q:"111 × 111",a:"12321"},
+    {q:"115 × 105",a:"12075"},
+    {q:"101 × 104",a:"10504"},{q:"103 × 106",a:"10918"},{q:"102 × 108",a:"11016"},
+    {q:"104 × 107",a:"11128"},{q:"109 × 103",a:"11227"},{q:"113 × 104",a:"11752"},
+    {q:"106 × 109",a:"11554"},{q:"108 × 103",a:"11124"},{q:"114 × 103",a:"11742"},
+    {q:"107 × 107",a:"11449"}
+  ],pass:0.8
+},
+"ch09":{
+  goal:"Master one-digit × two-digit problems: daily rates, tickets, subscriptions.",
+  concepts:[
+    {name:"Left-Right Split",text:"To multiply a two-digit number by a single digit, split at the tens place. Multiply the left side. Multiply the right side. Add them. Two smaller multiplications — always easier than one big one."},
+    {name:"Why It Works",text:"32 is 30 + 2. Multiplying 32 × 4 equals 30×4 plus 2×4. You're using the distributive property — but you don't need to call it that. Just split and add."}
+  ],
+  methods:[
+    {name:"Split & Merge",steps:[
+      "Split the two-digit number into its tens part and units part.",
+      "Multiply each part by the single digit.",
+      "Add the two results."
+    ]}
+  ],
+  examples:[
+    {hd:"62 × 7",steps:["Split: 60 + 2","60 × 7 = 420","2 × 7 = 14","<strong>420 + 14 = 434</strong>"]},
+    {hd:"48 × 3",steps:["Split: 40 + 8","40 × 3 = 120","8 × 3 = 24","<strong>120 + 24 = 144</strong>"]},
+    {hd:"95 × 6",steps:["Split: 90 + 5","90 × 6 = 540","5 × 6 = 30","<strong>540 + 30 = 570</strong>"]}
+  ],
+  qs:[
+    {q:"32 × 4",a:"128"},{q:"43 × 5",a:"215"},{q:"64 × 3",a:"192"},
+    {q:"24 × 6",a:"144"},{q:"52 × 7",a:"364"},{q:"72 × 5",a:"360"},
+    {q:"83 × 3",a:"249"},{q:"61 × 8",a:"488"},{q:"93 × 3",a:"279"},
+    {q:"55 × 6",a:"330"},{q:"19 × 6",a:"114"},{q:"39 × 4",a:"156"},
+    {q:"28 × 5",a:"140"},
+    {q:"41 × 6",a:"246"},{q:"73 × 4",a:"292"},{q:"62 × 7",a:"434"},
+    {q:"53 × 8",a:"424"},{q:"84 × 5",a:"420"},{q:"76 × 4",a:"304"},
+    {q:"29 × 7",a:"203"}
+  ],pass:0.8
+},
+"ch10":{
+  goal:"Solve 'ugly' multiplication problems using the I-X-I (Vertically and Crosswise) method.",
+  concepts:[
+    {name:"Vertically and Crosswise",text:"From Vedic Mathematics. Look at the two numbers side by side — multiply left, multiply right, then cross-multiply and add. Three parts, one answer."},
+    {name:"The Three Columns",text:"Left column: left digit of first × left digit of second. Right column: right digit × right digit. Middle column: both cross-multiplications added together."},
+    {name:"The Carry",text:"When any column gives ten or more, carry the tens into the next column to the left. Same carrying as primary school — but now three neat, separated operations."}
+  ],
+  methods:[
+    {name:"Vertically and Crosswise",steps:[
+      "Left column (I): multiply the two left-column digits together.",
+      "Right column (I): multiply the two right-column digits together.",
+      "Middle column (X): multiply diagonally both ways, add the two results.",
+      "Read left to right. Carry any tens leftward."
+    ]}
+  ],
+  examples:[
+    {hd:"12 × 13",steps:["Left: 1×1 = 1","Right: 2×3 = 6","Middle: (1×3)+(2×1) = 5","<strong>= 156</strong>"]},
+    {hd:"23 × 32",steps:["Left: 2×3 = 6","Right: 3×2 = 6","Middle: (2×2)+(3×3) = 13 → write 3, carry 1","Left: 6+1 = 7","<strong>= 736</strong>"]},
+    {hd:"43 × 11",steps:["Left: 4×1 = 4","Right: 3×1 = 3","Middle: (4×1)+(3×1) = 7","<strong>= 473</strong>"]}
+  ],
+  qs:[
+    {q:"12 × 13",a:"156"},{q:"21 × 41",a:"861"},{q:"22 × 31",a:"682"},
+    {q:"11 × 24",a:"264"},{q:"32 × 21",a:"672"},{q:"14 × 23",a:"322"},
+    {q:"24 × 21",a:"504"},{q:"32 × 14",a:"448"},{q:"41 × 13",a:"533"},
+    {q:"51 × 12",a:"612"},
+    {q:"13 × 21",a:"273"},{q:"22 × 13",a:"286"},{q:"31 × 23",a:"713"},
+    {q:"11 × 33",a:"363"},{q:"42 × 21",a:"882"},{q:"23 × 32",a:"736"},
+    {q:"14 × 31",a:"434"},{q:"21 × 33",a:"693"},{q:"43 × 11",a:"473"},
+    {q:"34 × 12",a:"408"}
+  ],pass:0.8
+},
+"ch11":{
+  goal:"Survive the Best Value Trap. Calculate unit prices faster than the shelf label.",
+  concepts:[
+    {name:"The Chunking Principle",text:"Instead of dividing the whole number by your divisor, break the dividend into two pieces that both divide cleanly. Add the results. Same answer, much less strain."},
+    {name:"Friendly Numbers",text:"The key skill is recognising 'friendly' multiples — numbers that divide cleanly. 96 ÷ 4? Split into 80 and 16. Both divide by 4 perfectly."}
+  ],
+  methods:[
+    {name:"Chunk It",steps:[
+      "Look at the dividend. Find two parts that each divide cleanly by your divisor.",
+      "Divide each part separately.",
+      "Add the results."
+    ]}
+  ],
+  examples:[
+    {hd:"84 ÷ 4",steps:["Split: 80 + 4","80 ÷ 4 = 20","4 ÷ 4 = 1","<strong>20 + 1 = 21</strong>"]},
+    {hd:"195 ÷ 3",steps:["Split: 180 + 15","180 ÷ 3 = 60","15 ÷ 3 = 5","<strong>60 + 5 = 65</strong>"]},
+    {hd:"136 ÷ 8",steps:["Split: 128 + 8","128 ÷ 8 = 16","8 ÷ 8 = 1","<strong>16 + 1 = 17</strong>"]}
+  ],
+  qs:[
+    {q:"72 ÷ 3",a:"24"},{q:"96 ÷ 4",a:"24"},{q:"56 ÷ 2",a:"28"},
+    {q:"45 ÷ 3",a:"15"},{q:"65 ÷ 5",a:"13"},{q:"132 ÷ 4",a:"33"},
+    {q:"156 ÷ 6",a:"26"},{q:"432 ÷ 2",a:"216"},{q:"91 ÷ 7",a:"13"},
+    {q:"144 ÷ 6",a:"24"},
+    {q:"84 ÷ 4",a:"21"},{q:"75 ÷ 3",a:"25"},{q:"108 ÷ 4",a:"27"},
+    {q:"63 ÷ 3",a:"21"},{q:"76 ÷ 4",a:"19"},{q:"195 ÷ 3",a:"65"},
+    {q:"168 ÷ 8",a:"21"},{q:"225 ÷ 5",a:"45"},{q:"112 ÷ 7",a:"16"},
+    {q:"136 ÷ 8",a:"17"}
+  ],pass:0.8
+},
+"ch12":{
+  goal:"Drop the number in the group chat before they even unlock their screens.",
+  concepts:[
+    {name:"Five is Half of Ten",text:"Dividing by five is exactly the same as multiplying by two and then dividing by ten. And dividing by ten just moves the decimal point. So the entire operation is: double it, shift the decimal."},
+    {name:"Why Double-Then-Ten Works",text:"A fifth of a number — doubling gives two-fifths. Divide by ten gives one-fifth. The algebra works. And it's always faster than long division."}
+  ],
+  methods:[
+    {name:"Double Up, Shift Down",steps:[
+      "Take the amount you want to divide by 5.",
+      "Double it.",
+      "Divide by 10 — shift the decimal one place to the left.",
+      "Done. That's your answer."
+    ]}
+  ],
+  examples:[
+    {hd:"$85 ÷ 5",steps:["× 2: 85 → 170","÷ 10: 170 → <strong>$17 each</strong>"]},
+    {hd:"$95 ÷ 5",steps:["× 2: 95 → 190","÷ 10: 190 → <strong>$19 each</strong>"]},
+    {hd:"$110 ÷ 5",steps:["× 2: 110 → 220","÷ 10: 220 → <strong>$22 each</strong>"]}
+  ],
+  qs:[
+    {q:"$84 ÷ 4",a:"21"},{q:"$128 ÷ 4",a:"32"},{q:"$248 ÷ 8",a:"31"},
+    {q:"$64 ÷ 4",a:"16"},{q:"$180 ÷ 6",a:"30"},{q:"$45 ÷ 5",a:"9"},
+    {q:"$120 ÷ 5",a:"24"},{q:"$32 ÷ 5",a:"6.4"},{q:"$21 ÷ 5",a:"4.2"},
+    {q:"$150 ÷ 5",a:"30"},
+    {q:"$96 ÷ 4",a:"24"},{q:"$176 ÷ 8",a:"22"},{q:"$336 ÷ 6",a:"56"},
+    {q:"$72 ÷ 4",a:"18"},{q:"$200 ÷ 8",a:"25"},{q:"$75 ÷ 5",a:"15"},
+    {q:"$85 ÷ 5",a:"17"},{q:"$95 ÷ 5",a:"19"},{q:"$110 ÷ 5",a:"22"},
+    {q:"$48 ÷ 4",a:"12"}
+  ],pass:0.8
+},
+"ch13":{
+  goal:"Square any number ending in 5 — instantly, every time.",
+  concepts:[
+    {name:"The Pattern That Never Fails",text:"Every single number ending in five, when squared, ends in twenty-five. Without exception. That's your right side — always 25, forever."},
+    {name:"The Left Side Rule",text:"Take the digits to the left of the five. Call that N. Multiply N by N+1. That's your left side. Append 25 on the right. Done."},
+    {name:"Why It Works",text:"If your number is 10N+5, squaring gives 100N(N+1)+25. That's N×(N+1) in front, followed by 25. The algebra is airtight."}
+  ],
+  methods:[
+    {name:"N × (N+1), then 25",steps:[
+      "Take the digit or digits before the 5.",
+      "Multiply that number by itself plus one.",
+      "Write the result, then append 25.",
+      "That's your answer."
+    ]}
+  ],
+  examples:[
+    {hd:"35²",steps:["Front: 3 × 4 = 12","Back: 25","<strong>= 1,225</strong>"]},
+    {hd:"75²",steps:["Front: 7 × 8 = 56","Back: 25","<strong>= 5,625</strong>"]},
+    {hd:"125²",steps:["Front: 12 × 13 = 156","Back: 25","<strong>= 15,625</strong>"]}
+  ],
+  qs:[
+    {q:"15²",a:"225"},{q:"25²",a:"625"},{q:"45²",a:"2025"},
+    {q:"55²",a:"3025"},{q:"75²",a:"5625"},{q:"85²",a:"7225"},
+    {q:"105²",a:"11025"},{q:"3.5²",a:"12.25"},{q:"6.5²",a:"42.25"},
+    {q:"95²",a:"9025"},
+    {q:"4.5²",a:"20.25"},{q:"7.5²",a:"56.25"},{q:"8.5²",a:"72.25"},
+    {q:"1.5²",a:"2.25"},{q:"125²",a:"15625"},{q:"145²",a:"21025"},
+    {q:"165²",a:"27225"},{q:"175²",a:"30625"},{q:"195²",a:"38025"},
+    {q:"205²",a:"42025"}
+  ],pass:0.8
+},
+"ch14":{
+  goal:"Calculate exact squares of numbers near 50 using 25 as your pivot point.",
+  concepts:[
+    {name:"The Anchor at 50",text:"50² = 2,500. Every number near 50 is just 50 plus or minus a small amount. And that small amount changes the answer in a very predictable way."},
+    {name:"The Pivot Formula",text:"D is your distance from 50. Answer = 2500 ± (D × 100) + D². Calculate D² — a small number — and everything else is straightforward arithmetic."},
+    {name:"Above 50 Version",text:"When the number is above 50, add D×100 instead of subtracting. 53² = 2500 + 300 + 9 = 2,809. Same formula, just flipped."}
+  ],
+  methods:[
+    {name:"The Pivot Rule",steps:[
+      "Find D — the distance from 50. Positive if above, negative if below.",
+      "Start with 2500.",
+      "Add D×100 if above 50. Subtract D×100 if below.",
+      "Add D² to the result."
+    ]}
+  ],
+  examples:[
+    {hd:"47²",steps:["D = 3 below 50","2500 − (3×100) = 2200","+ 3² = + 9","<strong>= 2,209</strong>"]},
+    {hd:"56²",steps:["D = 6 above 50","2500 + (6×100) = 3100","+ 6² = + 36","<strong>= 3,136</strong>"]},
+    {hd:"42²",steps:["D = 8 below 50","2500 − (8×100) = 1700","+ 8² = + 64","<strong>= 1,764</strong>"]}
+  ],
+  qs:[
+    {q:"49²",a:"2401"},{q:"51²",a:"2601"},{q:"46²",a:"2116"},
+    {q:"54²",a:"2916"},{q:"55²",a:"3025"},{q:"41²",a:"1681"},
+    {q:"39²",a:"1521"},{q:"61²",a:"3721"},{q:"38²",a:"1444"},
+    {q:"59²",a:"3481"},
+    {q:"47²",a:"2209"},{q:"53²",a:"2809"},{q:"44²",a:"1936"},
+    {q:"56²",a:"3136"},{q:"57²",a:"3249"},{q:"63²",a:"3969"},
+    {q:"37²",a:"1369"},{q:"42²",a:"1764"},{q:"58²",a:"3364"},
+    {q:"45²",a:"2025"}
+  ],pass:0.8
+},
+"ch15":{
+  goal:"Square numbers in 'No Man's Land' — not near 50, not near 100, not ending in 5.",
+  concepts:[
+    {name:"The Three-Column Structure",text:"Any two-digit number squared gives an answer you build in three columns. Left, middle, right. Three small multiplications. Combine the columns and you're done."},
+    {name:"Duplex",text:"The middle operation: multiply the two digits together, then double it. That doubling is the duplex. Left digit² on the left. Right digit² on the right. Duplex in the middle."}
+  ],
+  methods:[
+    {name:"The Duplex Drive",steps:[
+      "Left column: square the tens digit.",
+      "Right column: square the units digit.",
+      "Middle column: multiply the two digits together and double it (2ab).",
+      "Write all three. Carry tens into the left-neighbouring column. Read the answer."
+    ]}
+  ],
+  examples:[
+    {hd:"23²",steps:["L: 2²=4   M: 2×(2×3)=12   R: 3²=9","R=9 | M: keep 2 carry 1 | L: 4+1=5","<strong>= 529</strong>"]},
+    {hd:"37²",steps:["L: 3²=9   M: 2×(3×7)=42   R: 7²=49","R: 9 carry 4 | M: 42+4=46, keep 6 carry 4 | L: 9+4=13","<strong>= 1,369</strong>"]},
+    {hd:"64²",steps:["L: 6²=36   M: 2×(6×4)=48   R: 4²=16","R: 6 carry 1 | M: 48+1=49, keep 9 carry 4 | L: 36+4=40","<strong>= 4,096</strong>"]}
+  ],
+  qs:[
+    {q:"21²",a:"441"},{q:"31²",a:"961"},{q:"13²",a:"169"},
+    {q:"22²",a:"484"},{q:"41²",a:"1681"},{q:"34²",a:"1156"},
+    {q:"43²",a:"1849"},{q:"62²",a:"3844"},{q:"81²",a:"6561"},
+    {q:"52²",a:"2704"},{q:"26²",a:"676"},{q:"38²",a:"1444"},
+    {q:"72²",a:"5184"},
+    {q:"23²",a:"529"},{q:"33²",a:"1089"},{q:"44²",a:"1936"},
+    {q:"71²",a:"5041"},{q:"82²",a:"6724"},{q:"64²",a:"4096"},
+    {q:"73²",a:"5329"}
+  ],pass:0.8
+},
+"ch16":{
+  goal:"Find the cube root of any perfect cube mentally in under 10 seconds.",
+  concepts:[
+    {name:"Perfect Cubes Only",text:"This method works when the number is a perfect cube. In real life: volume calculations, sizing, engineering — and impressing people at parties."},
+    {name:"The Units Digit Lookup",text:"Every digit 0–9, when cubed, ends in a unique digit. 1→1, 2→8, 3→7, 4→4, 5→5, 6→6, 7→3, 8→2, 9→9. The cube's units digit tells you the root's units digit."},
+    {name:"The Tens Digit",text:"Drop the last three digits of the cube. Find which two consecutive perfect cubes the remaining number sits between. The smaller cube's root is your tens digit."}
+  ],
+  methods:[
+    {name:"Slash and Solve",steps:[
+      "Look at the units digit. Use the lookup table to find the units digit of your answer.",
+      "Drop the last three digits — ignore them.",
+      "Find which consecutive perfect cubes bracket the remaining number. Lower cube's root = tens digit.",
+      "Combine tens digit and units digit. Done."
+    ]}
+  ],
+  examples:[
+    {hd:"∛54,872",steps:["Units digit 2 → answer ends in 8  (2↔8 flip)","Drop last 3 digits → 54","3³=27 < 54 < 64=4³  →  tens digit = 3","<strong>= 38</strong>"]},
+    {hd:"∛29,791",steps:["Units digit 1 → answer ends in 1  (copycat)","Drop last 3 digits → 29","3³=27 < 29 < 64=4³  →  tens digit = 3","<strong>= 31</strong>"]},
+    {hd:"∛970,299",steps:["Units digit 9 → answer ends in 9  (copycat)","Drop last 3 digits → 970","9³=729 < 970 < 1000=10³  →  tens digit = 9","<strong>= 99</strong>"]}
+  ],
+  qs:[
+    {q:"Cube root of 13,824",a:"24"},{q:"Cube root of 54,872",a:"38"},
+    {q:"Cube root of 9,261",a:"21"},{q:"Cube root of 42,875",a:"35"},
+    {q:"Cube root of 103,823",a:"47"},{q:"Cube root of 117,649",a:"49"},
+    {q:"Cube root of 24,389",a:"29"},{q:"Cube root of 59,319",a:"39"},
+    {q:"Cube root of 148,877",a:"53"},{q:"Cube root of 970,299",a:"99"},
+    {q:"Cube root of 10,648",a:"22"},{q:"Cube root of 17,576",a:"26"},
+    {q:"Cube root of 29,791",a:"31"},{q:"Cube root of 35,937",a:"33"},
+    {q:"Cube root of 46,656",a:"36"},{q:"Cube root of 68,921",a:"41"},
+    {q:"Cube root of 79,507",a:"43"},{q:"Cube root of 97,336",a:"46"},
+    {q:"Cube root of 140,608",a:"52"},{q:"Cube root of 185,193",a:"57"}
+  ],pass:0.8
+},
+"ch17":{
+  goal:"Add, subtract, and compare fractions instantly — without finding common denominators.",
+  concepts:[
+    {name:"Why Fractions Feel Hard",text:"School method: find the lowest common denominator, convert both fractions, add, reduce. Four steps every time — and the first step alone can stump people. There's a better way."},
+    {name:"The Butterfly Method",text:"Draw wings around the two fractions. Cross-multiply — left numerator × right denominator, right numerator × left denominator. Those are your new numerators. Multiply both denominators for the new denominator."},
+    {name:"Comparing Fractions",text:"Which is bigger — 3/5 or 5/8? Cross-multiply: 3×8=24, 5×5=25. Twenty-five is bigger, so 5/8 wins. No common denominator needed."}
+  ],
+  methods:[
+    {name:"The Butterfly Method",steps:[
+      "To add: cross-multiply to get each new numerator.",
+      "Multiply the two denominators to get the new denominator.",
+      "Add the two cross-products to get the final numerator.",
+      "To compare: cross-multiply. The larger cross-product belongs to the larger fraction."
+    ]}
+  ],
+  examples:[
+    {hd:"1/4 + 1/5",steps:["Left wing: 1×5 = 5","Right wing: 1×4 = 4","Numerator: 5+4 = 9","Denominator: 4×5 = 20","<strong>= 9/20</strong>"]},
+    {hd:"2/5 + 1/3",steps:["Left wing: 2×3 = 6","Right wing: 1×5 = 5","Numerator: 6+5 = 11","Denominator: 5×3 = 15","<strong>= 11/15</strong>"]},
+    {hd:"Compare: 3/5 vs 5/8",steps:["3 × 8 = 24","5 × 5 = 25","25 > 24","<strong>5/8 is larger</strong>"]}
+  ],
+  qs:[
+    {q:"1/4 + 1/5",a:"9/20"},{q:"1/2 + 1/3",a:"5/6"},{q:"2/3 + 1/4",a:"11/12"},
+    {q:"3/5 + 1/2",a:"11/10"},{q:"1/6 + 1/7",a:"13/42"},
+    {q:"Compare: 2/3 vs 3/4",a:"3/4 wins"},{q:"Compare: 4/7 vs 5/9",a:"4/7 wins"},
+    {q:"Compare: 5/8 vs 6/10",a:"5/8 wins"},{q:"Compare: 1/3 vs 3/10",a:"1/3 wins"},
+    {q:"Compare: 7/12 vs 4/7",a:"7/12 wins"},
+    {q:"1/3 + 1/4",a:"7/12"},{q:"2/5 + 1/3",a:"11/15"},
+    {q:"1/4 + 2/7",a:"15/28"},{q:"3/7 + 1/5",a:"22/35"},
+    {q:"1/2 + 1/5",a:"7/10"},
+    {q:"Compare: 3/5 vs 5/8",a:"5/8 wins"},{q:"Compare: 2/5 vs 3/8",a:"2/5 wins"},
+    {q:"Compare: 3/8 vs 4/11",a:"3/8 wins"},{q:"Compare: 5/7 vs 6/8",a:"6/8 wins"},
+    {q:"Compare: 7/10 vs 5/7",a:"5/7 wins"}
+  ],pass:0.8
+},
+"ch18":{
+  goal:"Reverse-engineer percentages to find original prices — and spot the Base Rate Fallacy.",
+  concepts:[
+    {name:"The Percentage Triangle",text:"Three values: the Part, the Rate, and the Whole. Know any two, find the third. Cover the one you want — the other two show you the operation. The only formula you need."},
+    {name:"Finding a Percentage",text:"Part = Rate × Whole. 12% of 150 = 18. Or build it: 10% is 15, 2% is 3, add them. Assemble any percentage from 10% blocks and halves."},
+    {name:"Working Backwards",text:"Price after 30% discount is $42. That's 70% of something. Divide $42 by 0.7. The original was $60. That's the reverse audit — the most practical skill in this chapter."}
+  ],
+  methods:[
+    {name:"The Build (Finding a Percentage)",steps:[
+      "Find the 10% block: move the decimal one place left.",
+      "Halve it to get the 5% block. Or double for 20%.",
+      "Assemble: add or subtract blocks to reach your target percentage."
+    ]},
+    {name:"The Reverse Audit (Finding the Original)",steps:[
+      "Identify what percentage you actually paid or received.",
+      "Divide the known amount by that percentage as a decimal.",
+      "Or: find one percent, then scale to 100%."
+    ]}
+  ],
+  examples:[
+    {hd:"12% of $150",steps:["10% = $15.00","2% = $3.00","<strong>12% = $18.00</strong>"]},
+    {hd:"$36 is 90% of what?",steps:["90% = $36","1% = $36 ÷ 90 = $0.40","100% = $0.40 × 100","<strong>= $40.00</strong>"]},
+    {hd:"Paid $42 after 30% discount — original?",steps:["Paid 70% → $42","1% = $42 ÷ 70 = $0.60","100% = $0.60 × 100","<strong>= $60.00</strong>"]}
+  ],
+  qs:[
+    {q:"15% of $60",a:"9"},{q:"20% of $85",a:"17"},{q:"2% of $450",a:"9"},
+    {q:"60% of $50",a:"30"},{q:"11% of $200",a:"22"},
+    {q:"$55 is 110% of what?",a:"50"},{q:"$90 is 75% of what?",a:"120"},
+    {q:"$30 is 50% of what?",a:"60"},{q:"$120 is 120% of what?",a:"100"},
+    {q:"Paid $16 with 20% discount — original price?",a:"20"},
+    {q:"12% of $150",a:"18"},{q:"25% of $120",a:"30"},
+    {q:"35% of $60",a:"21"},{q:"8% of $250",a:"20"},
+    {q:"110% of $75",a:"82.50"},
+    {q:"$36 is 90% of what?",a:"40"},{q:"$48 is 80% of what?",a:"60"},
+    {q:"$35 is 70% of what?",a:"50"},
+    {q:"Paid $42 with 30% discount — original price?",a:"60"},
+    {q:"Paid $25 with 50% discount — original price?",a:"50"}
+  ],pass:0.8
+},
+"ch19":{
+  goal:"Understand compound interest exponentially — not linearly — using the Rule of 72.",
+  concepts:[
+    {name:"Rule of 72",text:"72 divided by your interest rate tells you how many years to double your money. 9% return? 72 ÷ 9 = 8. Eight years to double. Simple, memorable, accurate enough for every real decision."},
+    {name:"Why 72?",text:"The mathematically precise number is 69.3. But 72 divides cleanly by 2, 3, 4, 6, 8, 9, 12. We trade less than 1% accuracy for numbers that always work out neatly in your head."},
+    {name:"Two-Year Compound",text:"Two years at rate R% gives you not 2R% — it gives 2R% plus R²÷100. At 10%, you don't get 20% — you get 21%. That extra term compounds enormously over time."},
+    {name:"The Inflation Flip",text:"The rule works in reverse for anything growing against you. Inflation at 6%? Purchasing power halves in 12 years. Debt at 12%? It doubles in 6. Same arithmetic. Stakes reversed."}
+  ],
+  methods:[
+    {name:"The Rule of 72",steps:[
+      "For doubling time: divide 72 by the annual rate. That's your years.",
+      "For inflation damage: divide 72 by the inflation rate — years until money buys half as much.",
+      "Works for debt too: 72 ÷ interest rate = years until debt doubles."
+    ]},
+    {name:"Two-Year Compound Sprint",steps:[
+      "Double the rate for the base growth: 2 × R%.",
+      "Add R² ÷ 100 for the compound bonus.",
+      "Example: 6% for 2 years → 12% + 0.36% = 12.36% total."
+    ]}
+  ],
+  examples:[
+    {hd:"Rate 9% — years to double?",steps:["72 ÷ 9 = 8","<strong>8 years to double your money</strong>","At 30, it's doubled by 38. Doubled again by 46."]},
+    {hd:"2-year compound at 6% per year",steps:["Base: 6% × 2 = 12%","Bonus: 6² ÷ 100 = 0.36%","<strong>Total: 12.36%</strong>"]},
+    {hd:"Inflation at 8% — purchasing power?",steps:["72 ÷ 8 = 9","<strong>Purchasing power halves in 9 years</strong>","$100 today buys $50 of goods in 9 years."]}
+  ],
+  qs:[
+    {q:"Rule of 72: Rate 6% — years to double?",a:"12"},{q:"Rule of 72: Rate 8% — years to double?",a:"9"},
+    {q:"Rule of 72: Rate 9% — years to double?",a:"8"},{q:"Rule of 72: Rate 12% — years to double?",a:"6"},
+    {q:"Rule of 72: Rate 18% — years to double?",a:"4"},
+    {q:"2-year compound: 6% per year",a:"12.36%"},{q:"2-year compound: 9% per year",a:"18.81%"},
+    {q:"2-year compound: 12% per year",a:"25.44%"},{q:"2-year compound: 5% per year",a:"10.25%"},
+    {q:"2-year compound: 10% per year",a:"21%"},
+    {q:"Rule of 72: Rate 3% — years to double?",a:"24"},
+    {q:"Rule of 72: Rate 4% — years to double?",a:"18"},
+    {q:"Rule of 72: Rate 24% — years to double?",a:"3"},
+    {q:"Rule of 72: Rate 36% — years to double?",a:"2"},
+    {q:"Rule of 72: Rate 72% — years to double?",a:"1"},
+    {q:"2-year compound: 3% per year",a:"6.09%"},{q:"2-year compound: 4% per year",a:"8.16%"},
+    {q:"2-year compound: 7% per year",a:"14.49%"},{q:"2-year compound: 8% per year",a:"16.64%"},
+    {q:"2-year compound: 15% per year",a:"32.25%"}
+  ],pass:0.8
+}
+};
+
+/* ══ QUESTION GENERATOR ═════════════════════════════════════════
+   Runs once at boot, expanding each chapter's question pool
+   from 20 up to ~50 unique questions.
+   All answers are computed — zero chance of typos.
+   Called by boot.js after DATA is loaded.
+════════════════════════════════════════════════════════════════ */
+const QGen = (function(){
+
+  function fmt(n){ return String(n); }
+  function fmtMoney(n){ return '$' + (Number.isInteger(n) ? n : n.toFixed(2)); }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+  // Add questions to a chapter without duplicating existing ones
+  function addToChapter(chId, newQs){
+    const existing = DATA[chId].qs;
+    const existingSet = new Set(existing.map(q => q.q));
+    const fresh = newQs.filter(q => !existingSet.has(q.q));
+    DATA[chId].qs = [...existing, ...shuffle(fresh)];
+  }
+
+  function generate(){
+
+    // ── CH01: Adding prices (split dollar + cents) ────────────
+    (function(){
+      const qs = [];
+      const pairs = [
+        [1.99,3.50],[2.49,1.75],[4.99,2.25],[6.50,1.99],[3.75,4.25],
+        [7.99,1.50],[2.75,5.50],[8.25,3.99],[1.49,6.75],[5.25,2.99],
+        [3.99,3.99],[4.50,4.75],[2.25,7.25],[6.99,2.50],[1.75,8.50],
+        [9.99,3.25],[5.75,4.99],[3.50,6.25],[7.25,2.75],[4.25,5.50],
+        [11.50,3.99],[12.25,4.75],[8.99,5.50],[6.75,7.25],[9.50,4.25],
+        [14.99,3.50],[7.50,8.75],[5.99,9.25],[13.25,6.50],[10.75,5.25],
+    ];
+      pairs.forEach(([a,b]) => {
+        const sum = Math.round((a+b)*100)/100;
+        qs.push({q:`${fmtMoney(a)} + ${fmtMoney(b)}`, a: fmtMoney(sum)});
+      });
+      addToChapter('ch01', qs);
+    })();
+
+    // ── CH02: Making change (from $10, $20, $50, $100) ────────
+    (function(){
+      const qs = [];
+      const from100 = [15,22,37,48,63,71,84,92,28,44,56,67,73,81,95,
+                       19,33,47,58,66,78,85,91,24,39,52,64,76,88,97];
+      from100.forEach(spend => {
+        const change = 100 - spend;
+        qs.push({q:`$100 − $${spend}`, a: `$${change}`});
+      });
+      const from50 = [8,13,17,22,27,31,36,39,43,47,
+                      9,14,18,23,28,32,37,41,44,48];
+      from50.forEach(spend => {
+        const change = 50 - spend;
+        qs.push({q:`$50 − $${spend}`, a: `$${change}`});
+      });
+      addToChapter('ch02', qs);
+    })();
+
+    // ── CH03: ×2 ×4 ×8 ÷2 ÷4 ×5 ────────────────────────────
+    (function(){
+      const qs = [];
+      [12,15,16,18,22,24,25,32,35,36,44,45,48,55,64,75,85,95,
+       13,17,21,26,28,34,38,42,46,52,56,62,68,72,78,88].forEach(n => {
+        qs.push({q:`${n} × 2`, a: fmt(n*2)});
+        qs.push({q:`${n*2} ÷ 2`, a: fmt(n)});
+      });
+      [12,14,16,18,22,24,28,32,36,44,48,52,56,64,72,76,84,92,96].forEach(n => {
+        qs.push({q:`${n} × 4`, a: fmt(n*4)});
+        qs.push({q:`${n*4} ÷ 4`, a: fmt(n)});
+      });
+      [12,14,16,18,22,24,26,28,32,34,36,42,44,46,52,54,56,62].forEach(n => {
+        qs.push({q:`${n} × 5`, a: fmt(n*5)});
+      });
+      addToChapter('ch03', qs);
+    })();
+
+    // ── CH04: Digital roots ───────────────────────────────────
+    (function(){
+      const qs = [];
+      const root = n => { let r=n%9; return r===0&&n>0?9:r; };
+      [47,58,63,74,85,96,123,234,345,456,567,678,789,891,
+       1234,2345,3456,4567,5678,6789,7891,8912,9123,
+       999,888,777,666,555,444,333,222,111,
+       1999,2888,3777,4666,5555].forEach(n => {
+        qs.push({q:`Digital root of ${n.toLocaleString()}`, a: fmt(root(n))});
+      });
+      addToChapter('ch04', qs);
+    })();
+
+    // ── CH05: × 11 ────────────────────────────────────────────
+    (function(){
+      const qs = [];
+      for(let n=12; n<=99; n++){
+        if(n%11===0) continue;
+        const ans = n * 11;
+        qs.push({q:`${n} × 11`, a: fmt(ans)});
+      }
+      addToChapter('ch05', qs);
+    })();
+
+    // ── CH06: × 15 and × 12 ──────────────────────────────────
+    (function(){
+      const qs = [];
+      [4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,40,
+       44,48,50,52,54,56,60,64,66,70,72,80].forEach(n => {
+        qs.push({q:`${n} × 15`, a: fmt(n*15)});
+        qs.push({q:`${n} × 12`, a: fmt(n*12)});
+      });
+      addToChapter('ch06', qs);
+    })();
+
+    // ── CH07: Near 100 below (cross-subtract) ────────────────
+    (function(){
+      const qs = [];
+      const pairs = [];
+      for(let a=91; a<=99; a++)
+        for(let b=a; b<=99; b++)
+          pairs.push([a,b]);
+      shuffle(pairs).slice(0,50).forEach(([a,b]) => {
+        qs.push({q:`${a} × ${b}`, a: fmt(a*b)});
+      });
+      addToChapter('ch07', qs);
+    })();
+
+    // ── CH08: Near 100 above (cross-add) ─────────────────────
+    (function(){
+      const qs = [];
+      const pairs = [];
+      for(let a=101; a<=115; a++)
+        for(let b=a; b<=115; b++)
+          pairs.push([a,b]);
+      shuffle(pairs).slice(0,50).forEach(([a,b]) => {
+        qs.push({q:`${a} × ${b}`, a: fmt(a*b)});
+      });
+      addToChapter('ch08', qs);
+    })();
+
+    // ── CH09: Split & merge (2-digit × 1-digit) ──────────────
+    (function(){
+      const qs = [];
+      for(let a=21; a<=99; a++)
+        for(let b=3; b<=9; b++)
+          qs.push({q:`${a} × ${b}`, a: fmt(a*b)});
+      addToChapter('ch09', shuffle(qs).slice(0,60));
+    })();
+
+    // ── CH10: Crisscross (2-digit × 2-digit) ─────────────────
+    (function(){
+      const qs = [];
+      const pairs = [];
+      for(let a=11; a<=39; a++)
+        for(let b=a; b<=39; b++)
+          if(a!==b) pairs.push([a,b]);
+      shuffle(pairs).slice(0,60).forEach(([a,b]) => {
+        qs.push({q:`${a} × ${b}`, a: fmt(a*b)});
+      });
+      addToChapter('ch10', qs);
+    })();
+
+    // ── CH11: Short division ──────────────────────────────────
+    (function(){
+      const qs = [];
+      [[2,3],[3,4],[4,5],[6,7],[8,9]].forEach(([d1,d2]) => {
+        for(let q=11; q<=50; q++){
+          if(Number.isInteger(q/d1))
+            qs.push({q:`${q*d1} ÷ ${d1}`, a: fmt(q)});
+          if(Number.isInteger(q/d2))
+            qs.push({q:`${q*d2} ÷ ${d2}`, a: fmt(q)});
+        }
+      });
+      addToChapter('ch11', shuffle(qs).slice(0,60));
+    })();
+
+    // ── CH12: Smart division ──────────────────────────────────
+    (function(){
+      const qs = [];
+      // ÷5 using double-then-÷10
+      for(let n=3; n<=50; n++){
+        qs.push({q:`${n*5} ÷ 5`, a: fmt(n)});
+      }
+      // ÷6 using halve-then-÷3
+      for(let n=3; n<=30; n++){
+        qs.push({q:`${n*6} ÷ 6`, a: fmt(n)});
+      }
+      // ÷ 7 approximation isn't clean, skip
+      addToChapter('ch12', shuffle(qs).slice(0,50));
+    })();
+
+    // ── CH13: Squares ending in 5 ────────────────────────────
+    (function(){
+      const qs = [];
+      for(let n=5; n<=145; n+=10){
+        qs.push({q:`${n}²`, a: fmt(n*n)});
+      }
+      addToChapter('ch13', qs);
+    })();
+
+    // ── CH14: Squares near 50 ────────────────────────────────
+    (function(){
+      const qs = [];
+      for(let n=41; n<=59; n++){
+        if(n===50) continue;
+        qs.push({q:`${n}²`, a: fmt(n*n)});
+      }
+      addToChapter('ch14', qs);
+    })();
+
+    // ── CH15: Duplex (2-digit squares) ───────────────────────
+    (function(){
+      const qs = [];
+      for(let n=11; n<=99; n++){
+        qs.push({q:`${n}²`, a: fmt(n*n)});
+      }
+      // Filter out those already covered by ch13 (ending in 5)
+      const fresh = qs.filter(q => !q.q.endsWith('5²'));
+      addToChapter('ch15', shuffle(fresh).slice(0,55));
+    })();
+
+    // ── CH16: Cube roots ─────────────────────────────────────
+    (function(){
+      const qs = [];
+      for(let n=2; n<=20; n++){
+        const cube = n*n*n;
+        qs.push({q:`∛${cube.toLocaleString()}`, a: fmt(n)});
+      }
+      addToChapter('ch16', qs);
+    })();
+
+    // ── CH17: Fractions ──────────────────────────────────────
+    (function(){
+      const qs = [];
+      const gcd = (a,b) => b===0?a:gcd(b,a%b);
+      const simplify = (n,d) => { const g=gcd(Math.abs(n),d); return [n/g,d/g]; };
+      const pairs = [[1,2,1,3],[1,3,1,4],[1,2,1,4],[2,3,1,4],[3,4,1,3],
+                     [1,5,1,4],[2,5,1,3],[3,5,2,3],[1,6,1,4],[5,6,1,4],
+                     [1,2,2,5],[3,4,2,5],[1,3,2,7],[4,5,1,6],[3,8,1,4]];
+      pairs.forEach(([n1,d1,n2,d2]) => {
+        const rn = n1*d2 + n2*d1, rd = d1*d2;
+        const [sn,sd] = simplify(rn,rd);
+        qs.push({q:`${n1}/${d1} + ${n2}/${d2}`, a:`${sn}/${sd}`});
+        if(n1*d2 > n2*d1){
+          const [dn,dd] = simplify(n1*d2-n2*d1, rd);
+          qs.push({q:`${n1}/${d1} − ${n2}/${d2}`, a:`${dn}/${dd}`});
+        }
+      });
+      addToChapter('ch17', qs);
+    })();
+
+    // ── CH18: Percentages ────────────────────────────────────
+    (function(){
+      const qs = [];
+      [[10,50],[10,80],[10,120],[10,250],[10,500],
+       [15,60],[15,80],[15,100],[15,200],[15,40],
+       [20,45],[20,60],[20,85],[20,120],[20,250],
+       [25,80],[25,120],[25,200],[25,60],[25,40],
+       [5,80],[5,120],[5,200],[5,60],[5,40],
+       [30,90],[30,120],[30,60],[30,200],[30,50]
+      ].forEach(([pct,base]) => {
+        const ans = Math.round(pct/100*base*100)/100;
+        qs.push({q:`${pct}% of ${base}`, a: Number.isInteger(ans)?fmt(ans):ans.toFixed(2)});
+      });
+      addToChapter('ch18', qs);
+    })();
+
+    // ── CH19: Rule of 72 & compound growth ───────────────────
+    (function(){
+      const qs = [];
+      [2,3,4,6,8,9,12,18,24,36,72].forEach(r => {
+        const yrs = Math.round(72/r);
+        qs.push({q:`Rule of 72: ${r}% → double in?`, a:`${yrs} years`});
+      });
+      [[4,2],[6,2],[8,2],[10,2],[12,3],[6,3],[4,3],[8,3]].forEach(([r,n]) => {
+        const factor = Math.pow(1+r/100, n);
+        const ans = (factor*100 - 100).toFixed(2);
+        qs.push({q:`${r}% for ${n} year${n>1?'s':''} = ?% total growth`, a:`${ans}%`});
+      });
+      addToChapter('ch19', qs);
+    })();
+
+  }
+
+  return { generate };
+})();
+
+/* ══ DIAGRAMS ══════════════════════════════════════════════════
+   One SVG infographic per chapter, drawn in pure code.
+   Each function returns an HTML string with <svg> + caption.
+   Called by the Teach module when rendering the Methods step.
+═══════════════════════════════════════════════════════════ */
+/* ─── VISUAL DIAGRAMS — one per chapter, SVG drawn in code ────────────
+   Colors: mint=#00e5a0 blue=#4da6ff gold=#ffd166 red=#ff6b6b
+   text=#e8f4fd text2=#7ba3cc bg=#0e1e35 surface=#0e1e35      */
+const DIAGRAMS = {
+
+ch01: () => `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="18" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">THE TWO BUCKETS</text>
+  <rect x="16" y="28" width="128" height="90" rx="8" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="80" y="45" text-anchor="middle" fill="#ffd166" font-size="10" font-weight="700" font-family="sans-serif">DOLLARS</text>
+  <text x="80" y="72" text-anchor="middle" fill="#e8f4fd" font-size="20" font-weight="700" font-family="monospace">$12</text>
+  <text x="80" y="93" text-anchor="middle" fill="#7ba3cc" font-size="17" font-family="monospace">+ $4</text>
+  <line x1="36" y1="101" x2="124" y2="101" stroke="#264d80" stroke-width="1"/>
+  <text x="80" y="115" text-anchor="middle" fill="#00e5a0" font-size="20" font-weight="800" font-family="monospace">$16</text>
+  <rect x="176" y="28" width="128" height="90" rx="8" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="240" y="45" text-anchor="middle" fill="#ffd166" font-size="10" font-weight="700" font-family="sans-serif">CENTS</text>
+  <text x="240" y="72" text-anchor="middle" fill="#e8f4fd" font-size="20" font-weight="700" font-family="monospace">50¢</text>
+  <text x="240" y="93" text-anchor="middle" fill="#7ba3cc" font-size="17" font-family="monospace">+75¢</text>
+  <line x1="196" y1="101" x2="284" y2="101" stroke="#264d80" stroke-width="1"/>
+  <text x="240" y="115" text-anchor="middle" fill="#00e5a0" font-size="20" font-weight="800" font-family="monospace">$1.25</text>
+  <path d="M80,121 Q80,146 160,146 Q240,146 240,121" fill="none" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="160" y="157" text-anchor="middle" fill="#4da6ff" font-size="12" font-weight="700" font-family="monospace">$16 + $1.25 = $17.25 ✓</text>
+</svg>
+<div class="diagram-caption">Split every amount into Dollars + Cents. Add each bucket separately. Merge at the end.</div>`,
+
+ch02: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="16" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">ALL FROM 9, LAST FROM 10</text>
+  <text x="160" y="46" text-anchor="middle" fill="#e8f4fd" font-size="26" font-weight="700" font-family="monospace" letter-spacing="12">3 5 7 5</text>
+  <line x1="70" y1="55" x2="70" y2="75" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="117" y1="55" x2="117" y2="75" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="164" y1="55" x2="164" y2="75" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="211" y1="55" x2="211" y2="75" stroke="#ff6b6b" stroke-width="2"/>
+  <text x="70" y="91" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="monospace">9−3</text>
+  <text x="117" y="91" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="monospace">9−5</text>
+  <text x="164" y="91" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="monospace">9−7</text>
+  <text x="211" y="91" text-anchor="middle" fill="#ff6b6b" font-size="11" font-family="monospace">10−5</text>
+  <text x="160" y="120" text-anchor="middle" fill="#00e5a0" font-size="26" font-weight="700" font-family="monospace" letter-spacing="12">6 4 2 5</text>
+  <rect x="40" y="133" width="240" height="18" rx="4" fill="#0d2240"/>
+  <text x="160" y="146" text-anchor="middle" fill="#ffd166" font-size="11" font-weight="700" font-family="sans-serif">Change from $100 = $64.25 ✓</text>
+</svg>
+<div class="diagram-caption">Each digit is subtracted from 9. Only the very last digit is subtracted from 10. The result is your exact change.</div>`,
+
+ch03: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="16" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">THE DOUBLING CHAIN</text>
+  <circle cx="36" cy="68" r="20" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="36" y="74" text-anchor="middle" fill="#7ba3cc" font-size="15" font-weight="700" font-family="monospace">1</text>
+  <line x1="56" y1="68" x2="78" y2="68" stroke="#4da6ff" stroke-width="1.5"/>
+  <text x="67" y="61" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">×2</text>
+  <circle cx="98" cy="68" r="20" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="98" y="74" text-anchor="middle" fill="#e8f4fd" font-size="15" font-weight="700" font-family="monospace">2</text>
+  <line x1="118" y1="68" x2="140" y2="68" stroke="#4da6ff" stroke-width="1.5"/>
+  <text x="129" y="61" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">×2</text>
+  <circle cx="160" cy="68" r="20" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="160" y="74" text-anchor="middle" fill="#e8f4fd" font-size="15" font-weight="700" font-family="monospace">4</text>
+  <line x1="180" y1="68" x2="202" y2="68" stroke="#4da6ff" stroke-width="1.5"/>
+  <text x="191" y="61" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">×2</text>
+  <circle cx="222" cy="68" r="20" fill="#0d2240" stroke="#00e5a0" stroke-width="2"/>
+  <text x="222" y="74" text-anchor="middle" fill="#00e5a0" font-size="15" font-weight="700" font-family="monospace">8</text>
+  <text x="268" y="62" fill="#7ba3cc" font-size="10" font-family="sans-serif">×4</text>
+  <text x="268" y="76" fill="#7ba3cc" font-size="10" font-family="sans-serif">×8</text>
+  <rect x="16" y="106" width="290" height="40" rx="7" fill="#0d2240" stroke="#ffd166" stroke-width="1"/>
+  <text x="55" y="122" fill="#ffd166" font-size="10" font-weight="700" font-family="sans-serif">×5 trick:</text>
+  <text x="160" y="122" text-anchor="middle" fill="#e8f4fd" font-size="10" font-family="sans-serif">multiply by 10, then halve</text>
+  <text x="160" y="138" text-anchor="middle" fill="#00e5a0" font-size="11" font-weight="600" font-family="monospace">48 × 5  →  480 ÷ 2  =  240</text>
+</svg>
+<div class="diagram-caption">×4 = double-double. ×8 = double-double-double. ×5 = ×10 then halve. Your brain finds these much easier than times tables.</div>`,
+
+ch04: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="16" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">DIGITAL ROOT — COLLAPSE TO ONE DIGIT</text>
+  <text x="160" y="50" text-anchor="middle" fill="#e8f4fd" font-size="28" font-weight="700" font-family="monospace" letter-spacing="6">1  4  4</text>
+  <text x="160" y="68" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">↓ sum all digits</text>
+  <rect x="108" y="73" width="104" height="26" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="160" y="91" text-anchor="middle" fill="#e8f4fd" font-size="14" font-weight="700" font-family="monospace">1+4+4 = 9</text>
+  <text x="160" y="108" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">↓ already single digit</text>
+  <circle cx="160" cy="134" r="17" fill="#0d2240" stroke="#00e5a0" stroke-width="2"/>
+  <text x="160" y="140" text-anchor="middle" fill="#00e5a0" font-size="18" font-weight="800" font-family="monospace">9</text>
+  <text x="196" y="138" fill="#ffd166" font-size="10" font-family="sans-serif">Digital Root ✓</text>
+</svg>
+<div class="diagram-caption">Add all digits together. If the result is still more than one digit, add again. Use this to instantly verify any multiplication by checking both sides give the same root.</div>`,
+
+ch05: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="16" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">MAGIC 11 — SPLIT · ADD · SANDWICH</text>
+  <text x="160" y="20" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif">45 × 11</text>
+  <text x="72" y="58" text-anchor="middle" fill="#e8f4fd" font-size="30" font-weight="700" font-family="monospace">4</text>
+  <text x="160" y="58" text-anchor="middle" fill="#264d80" font-size="28" font-family="monospace">_</text>
+  <text x="248" y="58" text-anchor="middle" fill="#e8f4fd" font-size="30" font-weight="700" font-family="monospace">5</text>
+  <path d="M72,64 C72,86 138,86 160,80" fill="none" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <path d="M248,64 C248,86 182,86 160,80" fill="none" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="160" y="78" text-anchor="middle" fill="#4da6ff" font-size="9" font-family="sans-serif">4+5</text>
+  <text x="72" y="122" text-anchor="middle" fill="#e8f4fd" font-size="30" font-weight="700" font-family="monospace">4</text>
+  <circle cx="160" cy="113" r="16" fill="#0d2240" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="160" y="119" text-anchor="middle" fill="#ffd166" font-size="17" font-weight="700" font-family="monospace">9</text>
+  <text x="248" y="122" text-anchor="middle" fill="#e8f4fd" font-size="30" font-weight="700" font-family="monospace">5</text>
+  <text x="160" y="148" text-anchor="middle" fill="#00e5a0" font-size="18" font-weight="800" font-family="monospace">= 495 ✓</text>
+</svg>
+<div class="diagram-caption">Split the two-digit number. Sum the digits and place the sum in the middle. When the sum is ≥10, carry the 1 to the left digit.</div>`,
+
+ch06: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="16" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">×12 AND ×15 DECOMPOSED</text>
+  <rect x="16" y="26" width="290" height="56" rx="8" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="36" y="50" fill="#ffd166" font-size="13" font-weight="700" font-family="monospace">×12</text>
+  <text x="80" y="50" fill="#7ba3cc" font-size="11" font-family="sans-serif">=</text>
+  <text x="100" y="50" fill="#e8f4fd" font-size="13" font-family="monospace">×10</text>
+  <text x="148" y="50" fill="#7ba3cc" font-size="11" font-family="sans-serif">+</text>
+  <text x="163" y="50" fill="#e8f4fd" font-size="13" font-family="monospace">×2</text>
+  <text x="100" y="72" fill="#00e5a0" font-size="12" font-family="monospace">8×12: 80 + 16 = 96 ✓</text>
+  <rect x="16" y="92" width="290" height="56" rx="8" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="36" y="116" fill="#ffd166" font-size="13" font-weight="700" font-family="monospace">×15</text>
+  <text x="80" y="116" fill="#7ba3cc" font-size="11" font-family="sans-serif">=</text>
+  <text x="100" y="116" fill="#e8f4fd" font-size="13" font-family="monospace">×10</text>
+  <text x="148" y="116" fill="#7ba3cc" font-size="11" font-family="sans-serif">+</text>
+  <text x="163" y="116" fill="#e8f4fd" font-size="13" font-family="monospace">½×10</text>
+  <text x="100" y="138" fill="#00e5a0" font-size="12" font-family="monospace">6×15: 60 + 30 = 90 ✓</text>
+</svg>
+<div class="diagram-caption">Never memorise ×12 or ×15 directly. Break them down: ×12 = ×10 + ×2. ×15 = ×10 + half of ×10.</div>`,
+
+ch07: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">BASE 100 (BELOW) — 97 × 94</text>
+  <line x1="20" y1="72" x2="300" y2="72" stroke="#264d80" stroke-width="2"/>
+  <circle cx="280" cy="72" r="7" fill="#4da6ff"/>
+  <text x="280" y="58" text-anchor="middle" fill="#4da6ff" font-size="12" font-weight="700" font-family="monospace">100</text>
+  <circle cx="170" cy="72" r="6" fill="#ffd166"/>
+  <text x="170" y="58" text-anchor="middle" fill="#ffd166" font-size="12" font-weight="700" font-family="monospace">97</text>
+  <text x="226" y="86" text-anchor="middle" fill="#ffd166" font-size="9" font-family="sans-serif">deficit −3</text>
+  <circle cx="80" cy="72" r="6" fill="#ff6b6b"/>
+  <text x="80" y="58" text-anchor="middle" fill="#ff6b6b" font-size="12" font-weight="700" font-family="monospace">94</text>
+  <text x="122" y="86" text-anchor="middle" fill="#ff6b6b" font-size="9" font-family="sans-serif">deficit −6</text>
+  <rect x="16" y="100" width="290" height="50" rx="7" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="160" y="118" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">Cross-subtract:  97 − 6 = <tspan fill="#00e5a0" font-weight="700">91</tspan></text>
+  <text x="160" y="134" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">Multiply deficits:  3 × 6 = <tspan fill="#ffd166" font-weight="700">18</tspan></text>
+  <text x="160" y="148" text-anchor="middle" fill="#00e5a0" font-size="12" font-weight="700" font-family="monospace">9100 − 18 = 9082 ✓</text>
+</svg>
+<div class="diagram-caption">Find how far each number is below 100. Cross-subtract to get the first two digits. Multiply the two deficits for the last two digits.</div>`,
+
+ch08: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">BASE 100 (ABOVE) — 103 × 106</text>
+  <line x1="20" y1="72" x2="300" y2="72" stroke="#264d80" stroke-width="2"/>
+  <circle cx="40" cy="72" r="7" fill="#4da6ff"/>
+  <text x="40" y="58" text-anchor="middle" fill="#4da6ff" font-size="12" font-weight="700" font-family="monospace">100</text>
+  <circle cx="140" cy="72" r="6" fill="#ffd166"/>
+  <text x="140" y="58" text-anchor="middle" fill="#ffd166" font-size="12" font-weight="700" font-family="monospace">103</text>
+  <text x="90" y="86" text-anchor="middle" fill="#ffd166" font-size="9" font-family="sans-serif">surplus +3</text>
+  <circle cx="230" cy="72" r="6" fill="#00e5a0"/>
+  <text x="230" y="58" text-anchor="middle" fill="#00e5a0" font-size="12" font-weight="700" font-family="monospace">106</text>
+  <text x="184" y="86" text-anchor="middle" fill="#00e5a0" font-size="9" font-family="sans-serif">surplus +6</text>
+  <rect x="16" y="100" width="290" height="50" rx="7" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="160" y="118" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">Cross-add:  103 + 6 = <tspan fill="#00e5a0" font-weight="700">109</tspan></text>
+  <text x="160" y="134" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">Multiply surpluses:  3 × 6 = <tspan fill="#ffd166" font-weight="700">18</tspan></text>
+  <text x="160" y="148" text-anchor="middle" fill="#00e5a0" font-size="12" font-weight="700" font-family="monospace">10900 + 18 = 10918 ✓</text>
+</svg>
+<div class="diagram-caption">Find how far each number is above 100. Cross-add for the first part. Multiply the two surpluses for the last two digits.</div>`,
+
+ch09: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">LEFT-RIGHT SPLIT — 32 × 4</text>
+  <text x="160" y="52" text-anchor="middle" fill="#e8f4fd" font-size="26" font-weight="700" font-family="monospace">32 × 4</text>
+  <line x1="80" y1="68" x2="80" y2="86" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="240" y1="68" x2="240" y2="86" stroke="#ffd166" stroke-width="1.5"/>
+  <rect x="20" y="90" width="120" height="32" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="80" y="111" text-anchor="middle" fill="#4da6ff" font-size="13" font-family="monospace">30 × 4 = 120</text>
+  <rect x="180" y="90" width="120" height="32" rx="6" fill="#0d2240" stroke="#ffd166" stroke-width="1"/>
+  <text x="240" y="111" text-anchor="middle" fill="#ffd166" font-size="13" font-family="monospace">2 × 4 = 8</text>
+  <path d="M80,122 Q80,142 160,142 Q240,142 240,122" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="160" y="153" text-anchor="middle" fill="#00e5a0" font-size="14" font-weight="700" font-family="monospace">120 + 8 = 128 ✓</text>
+</svg>
+<div class="diagram-caption">Split the two-digit number at the tens digit. Multiply each part by the single digit. Add the two results.</div>`,
+
+ch10: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">VERTICALLY &amp; CROSSWISE — 12 × 13</text>
+  <text x="80" y="50" text-anchor="middle" fill="#e8f4fd" font-size="22" font-weight="700" font-family="monospace">1 2</text>
+  <text x="240" y="50" text-anchor="middle" fill="#e8f4fd" font-size="22" font-weight="700" font-family="monospace">1 3</text>
+  <line x1="64" y1="52" x2="224" y2="52" stroke="#264d80" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="60" y="80" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="sans-serif">Left ×</text>
+  <text x="160" y="80" text-anchor="middle" fill="#ffd166" font-size="11" font-family="sans-serif">Cross ×</text>
+  <text x="262" y="80" text-anchor="middle" fill="#ff6b6b" font-size="11" font-family="sans-serif">Right ×</text>
+  <text x="60" y="98" text-anchor="middle" fill="#4da6ff" font-size="16" font-weight="700" font-family="monospace">1×1</text>
+  <text x="160" y="98" text-anchor="middle" fill="#ffd166" font-size="16" font-weight="700" font-family="monospace">1×3+2×1</text>
+  <text x="262" y="98" text-anchor="middle" fill="#ff6b6b" font-size="16" font-weight="700" font-family="monospace">2×3</text>
+  <text x="60" y="116" text-anchor="middle" fill="#4da6ff" font-size="13" font-family="monospace">= 1</text>
+  <text x="160" y="116" text-anchor="middle" fill="#ffd166" font-size="13" font-family="monospace">= 5</text>
+  <text x="262" y="116" text-anchor="middle" fill="#ff6b6b" font-size="13" font-family="monospace">= 6</text>
+  <text x="160" y="145" text-anchor="middle" fill="#00e5a0" font-size="16" font-weight="800" font-family="monospace">1 | 5 | 6  =  156 ✓</text>
+</svg>
+<div class="diagram-caption">Three columns: Left digits ×, Right digits ×, then Cross-multiply both ways and add. Carry any tens into the next column.</div>`,
+
+ch11: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">SHORT DIVISION — 96 ÷ 4</text>
+  <text x="160" y="46" text-anchor="middle" fill="#e8f4fd" font-size="22" font-weight="700" font-family="monospace">96 ÷ 4</text>
+  <line x1="80" y1="60" x2="80" y2="78" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="240" y1="60" x2="240" y2="78" stroke="#ffd166" stroke-width="1.5"/>
+  <rect x="20" y="82" width="120" height="32" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="80" y="103" text-anchor="middle" fill="#4da6ff" font-size="13" font-family="monospace">80 ÷ 4 = 20</text>
+  <rect x="180" y="82" width="120" height="32" rx="6" fill="#0d2240" stroke="#ffd166" stroke-width="1"/>
+  <text x="240" y="103" text-anchor="middle" fill="#ffd166" font-size="13" font-family="monospace">16 ÷ 4 = 4</text>
+  <path d="M80,114 Q80,134 160,134 Q240,134 240,114" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="160" y="148" text-anchor="middle" fill="#00e5a0" font-size="16" font-weight="700" font-family="monospace">20 + 4 = 24 ✓</text>
+</svg>
+<div class="diagram-caption">Chunk the dividend into two "friendly" numbers that are both divisible. Divide each chunk. Add the results.</div>`,
+
+ch12: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">TEAM SPLIT — $85 ÷ 5</text>
+  <rect x="110" y="24" width="100" height="30" rx="6" fill="#0d2240" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="160" y="44" text-anchor="middle" fill="#ffd166" font-size="16" font-weight="700" font-family="monospace">$85</text>
+  <line x1="160" y1="54" x2="160" y2="70" stroke="#4da6ff" stroke-width="1.5"/>
+  <text x="196" y="67" fill="#4da6ff" font-size="10" font-family="sans-serif">÷ 5 trick</text>
+  <rect x="85" y="74" width="150" height="30" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="160" y="94" text-anchor="middle" fill="#4da6ff" font-size="12" font-family="monospace">×2 then ÷10</text>
+  <line x1="160" y1="104" x2="160" y2="118" stroke="#4da6ff" stroke-width="1.5"/>
+  <text x="220" y="115" fill="#7ba3cc" font-size="10" font-family="sans-serif">85 × 2 = 170</text>
+  <rect x="85" y="122" width="150" height="28" rx="6" fill="#0d2240" stroke="#00e5a0" stroke-width="1.5"/>
+  <text x="160" y="141" text-anchor="middle" fill="#00e5a0" font-size="15" font-weight="700" font-family="monospace">170 ÷ 10 = $17</text>
+</svg>
+<div class="diagram-caption">To divide by 5: double the number, then divide by 10 (just shift the decimal). Works instantly every time.</div>`,
+
+ch13: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">INSTANT SQUARES — 35²</text>
+  <text x="160" y="48" text-anchor="middle" fill="#e8f4fd" font-size="26" font-weight="700" font-family="monospace">35²</text>
+  <line x1="100" y1="58" x2="78" y2="76" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="220" y1="58" x2="242" y2="76" stroke="#ffd166" stroke-width="1.5"/>
+  <rect x="16" y="80" width="110" height="32" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="71" y="101" text-anchor="middle" fill="#4da6ff" font-size="13" font-family="monospace">3 × (3+1)</text>
+  <rect x="194" y="80" width="110" height="32" rx="6" fill="#0d2240" stroke="#ffd166" stroke-width="1"/>
+  <text x="249" y="101" text-anchor="middle" fill="#ffd166" font-size="13" font-family="monospace">always 25</text>
+  <line x1="71" y1="112" x2="71" y2="126" stroke="#4da6ff" stroke-width="1.5"/>
+  <line x1="249" y1="112" x2="249" y2="126" stroke="#ffd166" stroke-width="1.5"/>
+  <text x="71" y="140" text-anchor="middle" fill="#4da6ff" font-size="16" font-weight="700" font-family="monospace">12</text>
+  <text x="160" y="140" text-anchor="middle" fill="#7ba3cc" font-size="14" font-family="monospace">|</text>
+  <text x="249" y="140" text-anchor="middle" fill="#ffd166" font-size="16" font-weight="700" font-family="monospace">25</text>
+  <text x="160" y="154" text-anchor="middle" fill="#00e5a0" font-size="13" font-weight="700" font-family="monospace">= 1225 ✓</text>
+</svg>
+<div class="diagram-caption">For any number ending in 5: multiply the leading digit(s) by itself plus 1. Then append 25. Done.</div>`,
+
+ch14: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">THE PIVOT — 47² (NEAR 50)</text>
+  <line x1="20" y1="70" x2="300" y2="70" stroke="#264d80" stroke-width="2"/>
+  <circle cx="160" cy="70" r="7" fill="#4da6ff"/>
+  <text x="160" y="56" text-anchor="middle" fill="#4da6ff" font-size="12" font-weight="700" font-family="monospace">50</text>
+  <circle cx="88" cy="70" r="6" fill="#ffd166"/>
+  <text x="88" y="56" text-anchor="middle" fill="#ffd166" font-size="12" font-weight="700" font-family="monospace">47</text>
+  <path d="M88,70 L160,70" stroke="#ffd166" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="124" y="84" text-anchor="middle" fill="#ffd166" font-size="9" font-family="sans-serif">−3 from 50</text>
+  <rect x="16" y="100" width="290" height="50" rx="7" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="160" y="118" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">50² = 2500 · diff = 3</text>
+  <text x="160" y="134" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif"><tspan fill="#4da6ff">2500</tspan> − (3×100) + <tspan fill="#ffd166">3²</tspan> = 2500−300+9</text>
+  <text x="160" y="148" text-anchor="middle" fill="#00e5a0" font-size="13" font-weight="700" font-family="monospace">= 2209 ✓</text>
+</svg>
+<div class="diagram-caption">For numbers near 50: use 50²=2500 as your anchor. Subtract (diff×100) then add diff². Works within ±15 of 50.</div>`,
+
+ch15: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">DUPLEX DRIVE — 23²</text>
+  <text x="160" y="46" text-anchor="middle" fill="#e8f4fd" font-size="24" font-weight="700" font-family="monospace">2 3</text>
+  <rect x="16" y="56" width="88" height="70" rx="6" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="60" y="72" text-anchor="middle" fill="#4da6ff" font-size="9" font-weight="700" font-family="sans-serif">LEFT</text>
+  <text x="60" y="90" text-anchor="middle" fill="#e8f4fd" font-size="13" font-family="monospace">2×2</text>
+  <text x="60" y="110" text-anchor="middle" fill="#4da6ff" font-size="18" font-weight="700" font-family="monospace">4</text>
+  <rect x="116" y="56" width="88" height="70" rx="6" fill="#0d2240" stroke="#ffd166" stroke-width="1"/>
+  <text x="160" y="72" text-anchor="middle" fill="#ffd166" font-size="9" font-weight="700" font-family="sans-serif">MIDDLE</text>
+  <text x="160" y="90" text-anchor="middle" fill="#e8f4fd" font-size="13" font-family="monospace">2×2×3</text>
+  <text x="160" y="110" text-anchor="middle" fill="#ffd166" font-size="18" font-weight="700" font-family="monospace">12</text>
+  <rect x="216" y="56" width="88" height="70" rx="6" fill="#0d2240" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="260" y="72" text-anchor="middle" fill="#ff6b6b" font-size="9" font-weight="700" font-family="sans-serif">RIGHT</text>
+  <text x="260" y="90" text-anchor="middle" fill="#e8f4fd" font-size="13" font-family="monospace">3×3</text>
+  <text x="260" y="110" text-anchor="middle" fill="#ff6b6b" font-size="18" font-weight="700" font-family="monospace">9</text>
+  <text x="160" y="142" text-anchor="middle" fill="#00e5a0" font-size="14" font-weight="700" font-family="monospace">4 | 12 | 9 → carry → 529 ✓</text>
+</svg>
+<div class="diagram-caption">L = left digit squared. M = 2 × left × right. R = right digit squared. Write right-to-left, carry the tens.</div>`,
+
+ch16: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">CUBE ROOT HACK — ∛54872</text>
+  <rect x="16" y="24" width="290" height="60" rx="7" fill="#0d2240" stroke="#1e3a5f" stroke-width="1"/>
+  <text x="30" y="42" fill="#7ba3cc" font-size="9" font-weight="600" font-family="sans-serif">Units digit lookup:</text>
+  <text x="30" y="58" fill="#e8f4fd" font-size="10" font-family="monospace">1³→1  2³→8  3³→7  4³→4  5³→5</text>
+  <text x="30" y="72" fill="#e8f4fd" font-size="10" font-family="monospace">6³→6  7³→3  8³→2  9³→9  0³→0</text>
+  <rect x="16" y="94" width="290" height="56" rx="7" fill="#0d2240" stroke="#4da6ff" stroke-width="1"/>
+  <text x="160" y="110" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif">54,<tspan fill="#ffd166">872</tspan> — units digit <tspan fill="#ffd166">2</tspan> → answer ends in <tspan fill="#ffd166" font-weight="700">8</tspan></text>
+  <text x="160" y="126" text-anchor="middle" fill="#e8f4fd" font-size="11" font-family="sans-serif"><tspan fill="#4da6ff">54</tspan>,872 — <tspan fill="#4da6ff">3³=27 &lt; 54 &lt; 64=4³</tspan> → tens = <tspan fill="#4da6ff" font-weight="700">3</tspan></text>
+  <text x="160" y="144" text-anchor="middle" fill="#00e5a0" font-size="14" font-weight="700" font-family="monospace">∛54872 = 38 ✓</text>
+</svg>
+<div class="diagram-caption">Step 1: Look at the last 3 digits — the units digit tells you the answer's units digit via the lookup table. Step 2: Drop the last 3 digits and find which perfect cube it sits between for the tens digit.</div>`,
+
+ch17: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">BUTTERFLY METHOD — ¼ + ⅕</text>
+  <text x="80" y="50" text-anchor="middle" fill="#e8f4fd" font-size="24" font-weight="700" font-family="monospace">1/4</text>
+  <text x="160" y="50" text-anchor="middle" fill="#7ba3cc" font-size="20" font-family="sans-serif">+</text>
+  <text x="240" y="50" text-anchor="middle" fill="#e8f4fd" font-size="24" font-weight="700" font-family="monospace">1/5</text>
+  <path d="M60,52 C60,90 160,100 160,100 C160,100 260,90 260,52" fill="none" stroke="#4da6ff" stroke-width="1.5" opacity=".7"/>
+  <path d="M100,52 C100,90 160,100 160,100 C160,100 220,90 220,52" fill="none" stroke="#ffd166" stroke-width="1.5" opacity=".7"/>
+  <text x="80" y="108" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="monospace">1×5=5</text>
+  <text x="240" y="108" text-anchor="middle" fill="#4da6ff" font-size="11" font-family="monospace">1×4=4</text>
+  <text x="160" y="124" text-anchor="middle" fill="#ffd166" font-size="11" font-family="monospace">4×5=20</text>
+  <text x="160" y="147" text-anchor="middle" fill="#00e5a0" font-size="15" font-weight="700" font-family="monospace">(5+4)/20 = 9/20 ✓</text>
+</svg>
+<div class="diagram-caption">Cross-multiply to get the numerators. Multiply the denominators for the new denominator. Add the cross-products for the new numerator.</div>`,
+
+ch18: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">PERCENTAGE TRIANGLE</text>
+  <polygon points="160,28 36,130 284,130" fill="#0d2240" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="160" y="56" text-anchor="middle" fill="#ffd166" font-size="14" font-weight="700" font-family="sans-serif">PART</text>
+  <line x1="98" y1="79" x2="222" y2="79" stroke="#264d80" stroke-width="1.5"/>
+  <text x="80" y="112" text-anchor="middle" fill="#4da6ff" font-size="13" font-weight="700" font-family="sans-serif">RATE</text>
+  <text x="240" y="112" text-anchor="middle" fill="#00e5a0" font-size="13" font-weight="700" font-family="sans-serif">WHOLE</text>
+  <text x="160" y="148" text-anchor="middle" fill="#e8f4fd" font-size="10" font-family="sans-serif">Cover what you need: Part = Rate × Whole</text>
+</svg>
+<div class="diagram-caption">Cover the value you want to find. The remaining two values show the operation. To find RATE: Part ÷ Whole. To find WHOLE: Part ÷ Rate.</div>`,
+
+ch19: () => `<svg viewBox="0 0 320 155" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+  <text x="160" y="14" text-anchor="middle" fill="#7ba3cc" font-size="10" font-family="sans-serif" font-weight="600" letter-spacing="1">RULE OF 72 — YEARS TO DOUBLE</text>
+  ${[
+    [3,24],[4,18],[6,12],[8,9],[9,8],[12,6],[18,4],[24,3],[36,2],[72,1]
+  ].map(([rate,yrs],i) => {
+    const x = 20 + i*28; const barH = yrs*4; const y = 128-barH;
+    const col = yrs>12?'#ff6b6b':yrs>6?'#ffd166':'#00e5a0';
+    return `<rect x="${x}" y="${y}" width="22" height="${barH}" rx="3" fill="${col}" opacity=".85"/>
+    <text x="${x+11}" y="142" text-anchor="middle" fill="#7ba3cc" font-size="8" font-family="monospace">${rate}%</text>
+    <text x="${x+11}" y="${y-3}" text-anchor="middle" fill="${col}" font-size="8" font-weight="700" font-family="monospace">${yrs}y</text>`;
+  }).join('')}
+  <line x1="16" y1="128" x2="304" y2="128" stroke="#264d80" stroke-width="1"/>
+</svg>
+<div class="diagram-caption">72 ÷ interest rate = years to double your money. At 6% it takes 12 years. At 12% just 6 years. Doubling time halves when rate doubles.</div>`,
+
+};
+
+
+
+/* ══ STATE ════════════════════════════════════════════════════
+   Persistent user data: completed chapters, quiz attempts,
+   accuracy score, and dev mode flag.
+   Saved to localStorage on every change.
+   Dev mode: tap the title 7 times to unlock all chapters.
+═══════════════════════════════════════════════════════════ */
+/* ─── STATE ─────────────────────────────────────────────── */
+const KEY = 'uncalc_v2';
+let S = { devMode:false, done:[], attempts:0, correct:0, raceBest:0, practiceStars:{} };
+
+function loadS() {
+  try { const r=localStorage.getItem(KEY); if(r) S={...S,...JSON.parse(r)}; } catch(e){}
+}
+function saveS() { try { localStorage.setItem(KEY,JSON.stringify(S)); } catch(e){} }
+
+/* ─── HIDDEN DEV MODE — 7 taps on title ─────────────────── */
+(function(){
+  let taps=0, timer=null;
+  document.getElementById('landing-title-tap').addEventListener('click',()=>{
+    taps++;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{ taps=0; },3000);
+    if(taps>=7){
+      taps=0;
+      S.devMode=!S.devMode;
+      saveS();
+      Toast.show(S.devMode ? '🔓 Dev Mode ON — all chapters unlocked' : '🔒 Dev Mode OFF');
+    }
+  });
+})();
+
+/* ══ UTILITIES ═════════════════════════════════════════════════
+   shuffle()      — Fisher-Yates array shuffle
+   makeOptions()  — builds 4 quiz answer choices, correct always included
+   playSound()    — Web Audio API tones (ok / no / win / slide)
+   vibrate()      — haptic feedback wrapper (calls playSound too)
+   timerStart()   — starts countdown timer bar in quiz
+   timerClear()   — stops and hides the timer
+═══════════════════════════════════════════════════════════ */
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+
+/* ─── OPTIONS GENERATOR — correct answer ALWAYS present ───────────────
+   Build 3 wrong distractors first, then add the correct answer,
+   then shuffle all 4 together. slice() can never cut the right answer. */
+function makeOptions(answer) {
+  const a = String(answer).trim();
+  function wrong3(pool) {
+    const u = [...new Set(pool.filter(x => x !== a && x != null && x !== ''))];
+    const p = shuffle(u).slice(0, 3);
+    for (let i = 1; p.length < 3; i++) p.push(a + '?' + i);
+    return p;
+  }
+  if (a === 'Correct' || a === 'Incorrect') return shuffle(['Correct','Incorrect']);
+  if (a.includes(' wins')) {
+    const pool = ['Tie','Neither wins','Equal'];
+    const m = a.match(/(\d+)\/(\d+)/);
+    if (m) pool.push(m[2]+'/'+m[1]+' wins');
+    return shuffle([a].concat(wrong3(pool)));
+  }
+  const fr = a.match(/^(\d+)\/(\d+)(.*)$/);
+  if (fr) {
+    const n=+fr[1], d=+fr[2], sx=fr[3]||'';
+    const mk=(x,y)=>x+'/'+y+sx;
+    return shuffle([a].concat(wrong3([mk(n+1,d),mk(n,d+1),mk(n>1?n-1:n+2,d),mk(n,d>1?d-1:d+2),mk(d,n),mk(n+2,d),mk(n,d+2)])));
+  }
+  if (/\d%$/.test(a)) {
+    const v = parseFloat(a);
+    if (!isNaN(v)) {
+      const dp = (a.slice(0,-1).split('.')[1]||'').length;
+      const fp = x => x.toFixed(dp)+'%';
+      return shuffle([a].concat(wrong3([fp(v+.5),fp(v-.5),fp(v+1.5),fp(v-1.5),fp(Math.round(v)),fp(v+2.5),fp(v-2.5)].filter(x=>parseFloat(x)>0))));
+    }
+  }
+  const nm = a.match(/^(\$?)(\d+\.?\d*)(.*)$/);
+  if (nm) {
+    const pre=nm[1], v=parseFloat(nm[2]), sx=nm[3]||'';
+    if (!isNaN(v) && v > 0) {
+      const dp=(nm[2].split('.')[1]||'').length;
+      const fmt=x=>pre+Math.max(.01,x).toFixed(dp)+sx;
+      let d;
+      if      (v>=10000) d=[100,-100,200,-200,500,-500];
+      else if (v>=1000)  d=[10,-10,20,-20,100,-100];
+      else if (v>=100)   d=[5,-5,10,-10,20,-20];
+      else if (v>=10)    d=[1,-1,2,-2,5,-5];
+      else if (dp>=2)    d=[.25,-.25,.5,-.5,1,-1];
+      else if (dp===1)   d=[.1,-.1,.5,-.5,1,-1];
+      else               d=[1,-1,2,-2,3,-3];
+      const pool=[...new Set(d.map(x=>fmt(v+x)).filter(x=>x!==a&&parseFloat(x.replace(/[^0-9.]/g,''))>0))];
+      return shuffle([a].concat(wrong3(pool)));
+    }
+  }
+  return [a,'?','??','???'];
+}
+
+
+/* ─── SOUND + HAPTICS ───────────────────────────────────── */
+let soundEnabled = true;
+function playSound(type) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    function tone(f,s,dur,g,tp) {
+      const o=ctx.createOscillator(), gn=ctx.createGain();
+      o.connect(gn); gn.connect(ctx.destination);
+      o.type=tp||'sine'; o.frequency.setValueAtTime(f,s);
+      gn.gain.setValueAtTime(0,s);
+      gn.gain.linearRampToValueAtTime(g,s+.01);
+      gn.gain.exponentialRampToValueAtTime(.001,s+dur);
+      o.start(s); o.stop(s+dur+.05);
+    }
+    const t = ctx.currentTime;
+    if (type==='ok') {
+      tone(659,t,.12,.18); tone(784,t+.10,.18,.14);
+    } else if (type==='no') {
+      tone(131,t,.09,.20,'sawtooth'); tone(117,t+.07,.14,.15,'sawtooth');
+    } else if (type==='win') {
+      tone(523,t,.10,.15); tone(659,t+.10,.10,.13); tone(784,t+.20,.25,.18);
+    } else if (type==='slide') {
+      const o=ctx.createOscillator(), gn=ctx.createGain(), fl=ctx.createBiquadFilter();
+      fl.type='lowpass'; fl.frequency.setValueAtTime(900,t); fl.frequency.linearRampToValueAtTime(300,t+.18);
+      o.connect(fl); fl.connect(gn); gn.connect(ctx.destination); o.type='sine';
+      o.frequency.setValueAtTime(520,t); o.frequency.exponentialRampToValueAtTime(180,t+.18);
+      gn.gain.setValueAtTime(0,t); gn.gain.linearRampToValueAtTime(.07,t+.03); gn.gain.exponentialRampToValueAtTime(.001,t+.18);
+      o.start(t); o.stop(t+.22);
+    }
+    setTimeout(()=>{try{ctx.close();}catch(e){}},800);
+  } catch(e) {}
+}
+function vibrate(type) {
+  playSound(type);
+  if (!navigator.vibrate) return;
+  if (type==='ok')  navigator.vibrate(30);
+  if (type==='no')  navigator.vibrate([40,25,40]);
+  if (type==='win') navigator.vibrate([50,30,80]);
+}
+
+let timerEnabled=true;
+let _timerIv=null;
+const TIMER_SECS=60;
+
+function timerStart(wrapId, displayId, barId, seconds, onExpire){
+  timerClear(wrapId);
+  const wrap=document.getElementById(wrapId);
+  if(!wrap) return;
+  if(!timerEnabled){ wrap.classList.remove('show'); return; }
+  wrap.classList.add('show');
+  let remaining=seconds;
+  function tick(){
+    const disp=document.getElementById(displayId);
+    const bar=document.getElementById(barId);
+    if(disp){ disp.textContent=remaining+'s'; disp.classList.toggle('danger',remaining<=10); }
+    if(bar){ bar.style.width=(remaining/seconds*100)+'%'; bar.classList.toggle('danger',remaining<=10); }
+  }
+  tick();
+  _timerIv=setInterval(()=>{
+    remaining--;
+    tick();
+    if(remaining<=0){ clearInterval(_timerIv); _timerIv=null; if(onExpire) onExpire(); }
+  },1000);
+}
+
+function timerClear(wrapId){
+  clearInterval(_timerIv); _timerIv=null;
+  if(wrapId){
+    const wrap=document.getElementById(wrapId);
+    if(wrap) wrap.classList.remove('show');
+  }
+}
+
+
+/* ══ UI MODULES ════════════════════════════════════════════════
+   Toast     — small notification pop-up at bottom of screen
+   App       — shows the main app, hides the landing screen
+   Nav       — switches between Learn / Practice / Stats / Settings tabs
+   ChapterList — renders the scrollable list of 19 chapters
+   Stats     — renders the progress/accuracy numbers
+   Settings  — sound toggle, timer toggle, reset button
+═══════════════════════════════════════════════════════════ */
+/* ─── TOAST ─────────────────────────────────────────────── */
+const Toast = (function(){
+  let t=null;
+  const el=document.getElementById('toast');
+  return {
+    show(msg){ el.textContent=msg; el.classList.add('show'); clearTimeout(t); t=setTimeout(()=>el.classList.remove('show'),2600); }
+  };
+})();
+
+/* ─── APP ────────────────────────────────────────────────── */
+const App = {
+  start(){
+    document.getElementById('view-landing').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    Nav.go('learn');
+    // ── FIX 1: Pre-warm audio on this user gesture so first play is instant
+    Voice._prewarm();
+  }
+};
+
+/* ─── NAV ────────────────────────────────────────────────── */
+const Nav = (function(){
+  let cur = 'learn';
+  return {
+    go(id){
+      cur = id;
+      // Hide all tabs
+      document.querySelectorAll('.tab-pane').forEach(p => p.style.display='none');
+      const pane = document.getElementById('tab-'+id);
+      pane.style.display='block';
+      pane.scrollTop=0;
+      // Update nav buttons
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab===id);
+      });
+      // Init tab
+      if(id==='learn')    ChapterList.render();
+      if(id==='practice'){ Practice.init(); Race.showLobby(); PracticeNav.show('practice'); }
+      if(id==='stats')    Stats.render();
+      if(id !== 'practice') Race.stop();
+    }
+  };
+})();
+
+/* ─── CHAPTER LIST ───────────────────────────────────────── */
+const ChapterList = {
+
+  /* Same 6 categories as Practice — purely visual grouping.
+     Unlock rules unchanged: chapters unlock sequentially ch01→ch19. */
+  CATS: [
+    { id:'everyday', icon:'🔢', name:'Everyday Math',   color:'#4F9EFF', chapters:['ch01','ch02','ch03'] },
+    { id:'tricks',   icon:'🧮', name:'Number Tricks',   color:'#A855F7', chapters:['ch04','ch05','ch06'] },
+    { id:'multiply', icon:'⚡', name:'Speed Multiply',  color:'#F59E0B', chapters:['ch07','ch08','ch09','ch10'] },
+    { id:'divide',   icon:'➗', name:'Division Lab',    color:'#10B981', chapters:['ch11','ch12'] },
+    { id:'squares',  icon:'🔲', name:'Square Powers',   color:'#EF4444', chapters:['ch13','ch14','ch15','ch16'] },
+    { id:'realworld',icon:'💰', name:'Real World Math', color:'#F97316', chapters:['ch17','ch18','ch19'] },
+  ],
+
+  _currentCat: null,
+
+  /* ── called by Nav when switching to Learn tab ── */
+  render(){ this.renderCategories(); },
+
+  /* ── back from chapter detail → category chapter list ── */
+  backFromDetail(){
+    document.getElementById('screen-detail').classList.add('hidden');
+    document.getElementById('screen-list').classList.remove('hidden');
+    if(this._currentCat) this._renderCategoryChapters(this._currentCat);
+  },
+
+  /* ── SCREEN 1: category grid ── */
+  renderCategories(){
+    document.getElementById('screen-detail').classList.add('hidden');
+    document.getElementById('screen-list').classList.add('hidden');
+    document.getElementById('screen-categories').classList.remove('hidden');
+
+    const done  = S.done.length, total = CHAPTERS.length;
+    document.getElementById('global-pbar').style.width = Math.round(done/total*100)+'%';
+
+    const grid = document.getElementById('learn-cat-grid');
+    grid.innerHTML = this.CATS.map(cat => {
+      const chIdxs   = cat.chapters.map(id => CHAPTERS.findIndex(c=>c.id===id));
+      const catDone  = cat.chapters.filter(id => S.done.includes(id)).length;
+      const catTotal = cat.chapters.length;
+      const pct      = Math.round(catDone/catTotal*100);
+
+      // First chapter index in this cat — unlocked if prev global chapter done or i===0
+      const firstIdx = chIdxs[0];
+      const prevDone = firstIdx===0 ? true : S.done.includes(CHAPTERS[firstIdx-1].id);
+      const catUnlocked = prevDone || S.devMode;
+      const allDone = catDone === catTotal;
+
+      const starsRow = cat.chapters.map(id => {
+        const done = S.done.includes(id);
+        return `<span style="font-size:.75rem;opacity:${done?1:.2}">✓</span>`;
+      }).join('');
+
+      return `
+        <div class="cat-card ${catUnlocked?'':'cat-locked'}"
+             onclick="${catUnlocked?`ChapterList._openCat('${cat.id}')`:''}"
+             style="--cat-color:${cat.color}">
+          <div class="cat-icon">${catUnlocked ? cat.icon : '🔒'}</div>
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-stars" style="color:${cat.color}">${catUnlocked ? starsRow : '<span style="font-size:.65rem;color:var(--text3)">Complete previous first</span>'}</div>
+          ${catUnlocked ? `
+            <div style="font-size:.65rem;color:var(--text3);margin-bottom:6px">${catDone}/${catTotal} complete</div>
+            <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${cat.color}"></div></div>
+          ` : ''}
+        </div>`;
+    }).join('');
+  },
+
+  /* ── SCREEN 2: chapters within a category ── */
+  _openCat(catId){
+    this._currentCat = this.CATS.find(c=>c.id===catId);
+    document.getElementById('screen-categories').classList.add('hidden');
+    document.getElementById('screen-list').classList.remove('hidden');
+    this._renderCategoryChapters(this._currentCat);
+  },
+
+  _renderCategoryChapters(cat){
+    // Update back button
+    document.getElementById('back-to-cats-label').textContent = 'Categories';
+
+    // Category header
+    document.getElementById('cat-header-row').innerHTML = `
+      <span style="font-size:1.8rem">${cat.icon}</span>
+      <div>
+        <div style="font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:${cat.color}">${cat.name}</div>
+        <div style="font-size:.72rem;color:var(--text3)">${cat.chapters.length} chapters</div>
+      </div>`;
+
+    // Back label for detail screen
+    document.getElementById('back-to-cat-label').textContent = cat.name;
+
+    const list = document.getElementById('chapter-list');
+    list.innerHTML = '';
+
+    cat.chapters.forEach((chId, i) => {
+      const globalIdx = CHAPTERS.findIndex(c=>c.id===chId);
+      const ch        = CHAPTERS[globalIdx];
+      if(!ch) return;
+
+      const prevId   = globalIdx > 0 ? CHAPTERS[globalIdx-1].id : null;
+      const prevDone = prevId ? S.done.includes(prevId) : true;
+      const unlocked = (globalIdx===0) || prevDone || S.devMode;
+      const completed= S.done.includes(ch.id);
+      const diff     = ch.difficulty.toLowerCase();
+
+      const el = document.createElement('div');
+      el.className = `ch-item diff-${diff} ${unlocked?'':'locked'} anim-up`;
+      el.style.animationDelay = i*0.04+'s';
+      el.innerHTML = `
+        <div class="ch-num-col">
+          <span class="ch-num" style="${completed?'background:'+cat.color+';color:#fff;border-color:'+cat.color:''}">${completed?'✓':String(globalIdx+1).padStart(2,'0')}</span>
+        </div>
+        <div class="ch-body">
+          <div class="ch-title">${ch.title}</div>
+          <div class="ch-sub">${ch.difficulty}</div>
+        </div>
+        <div class="ch-right">
+          ${!unlocked ? '<span class="badge-lock">🔒</span>' : ''}
+        </div>`;
+      if(unlocked){
+        el.onclick = () => Chapter.open(ch.id);
+      }
+      list.appendChild(el);
+    });
+  },
+
+};
+
+/* ─── STATS ──────────────────────────────────────────────── */
+const Stats = {
+  render(){
+    const done=S.done.length, total=CHAPTERS.length;
+    const pct=Math.round(done/total*100);
+    const acc=S.attempts>0?Math.round(S.correct/S.attempts*100)+'%':'—';
+    document.getElementById('s-done').textContent=done;
+    document.getElementById('s-pct').textContent=pct+'%';
+    document.getElementById('s-acc').textContent=acc;
+    document.getElementById('s-att').textContent=S.attempts;
+    document.getElementById('stats-pbar').style.width=pct+'%';
+  }
+};
+
+/* ─── SETTINGS ───────────────────────────────────────────── */
+const Settings = {
+  initiateReset(){ document.getElementById('reset-confirm').classList.remove('hidden'); },
+  cancelReset()  { document.getElementById('reset-confirm').classList.add('hidden'); },
+  confirmReset() { try{localStorage.removeItem(KEY);}catch(e){} location.reload(); },
+  toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('sound-toggle-btn');
+    if (btn) btn.textContent = soundEnabled ? 'On' : 'Off';
+    if (soundEnabled) playSound('ok');
+    Toast.show(soundEnabled ? '🔊 Sound On' : '🔇 Sound Off');
+  },
+  toggleTimer() {
+    timerEnabled = !timerEnabled;
+    const btn = document.getElementById('timer-toggle-btn');
+    if (btn) btn.textContent = timerEnabled ? 'On' : 'Off';
+    Toast.show(timerEnabled ? '⏱ Timer On' : '⏱ Timer Off');
+  }
+};
+
+/* ─── PRACTICE / RACE MODE SWITCHER ─────────────────────────── */
+const PracticeNav = {
+  show(mode){
+    document.getElementById('mode-practice').style.display = mode==='practice' ? 'block' : 'none';
+    document.getElementById('mode-race').style.display      = mode==='race'     ? 'block' : 'none';
+    document.getElementById('mode-btn-practice').classList.toggle('active', mode==='practice');
+    document.getElementById('mode-btn-race').classList.toggle('active', mode==='race');
+    if(mode==='race') Race.showLobby();
+  }
+};
+
+/* ══ CHAPTER MODULE ════════════════════════════════════════════
+   Concepts → Methods → Examples → Quiz (10 questions).
+   Practice mode uses all 20 questions separately.
+═══════════════════════════════════════════════════════════ */
+const Chapter = (function(){
+  let state = { id:null, data:null, step:0, qIdx:0, qCorrect:0, selection:null, advTimer:null };
+
+  function open(id){
+    const d=DATA[id];
+    if(!d) return;
+    state={id, data:d, step:0, qIdx:0, qCorrect:0, selection:null, advTimer:null};
+    const meta=CHAPTERS.find(c=>c.id===id);
+    document.getElementById('detail-title').textContent = meta.title;
+    document.getElementById('detail-goal').textContent  = d.goal;
+    document.getElementById('screen-list').classList.add('hidden');
+    document.getElementById('screen-detail').classList.remove('hidden');
+    document.getElementById('tab-learn').scrollTop=0;
+    Voice.speak(id, 'intro');
+    renderStep();
+  }
+
+  function backToList(){
+    clearTimeout(state.advTimer);
+    timerClear('quiz-timer-wrap');
+    Hint.close();
+    Voice.stop();
+    ChapterList.backFromDetail();
+  }
+
+  function renderPills(){
+    const labels=['Concepts','Methods','Examples','Quiz'];
+    document.getElementById('step-pills').innerHTML=labels.map((l,i)=>{
+      let cls='';
+      if(i < state.step) cls='done';
+      else if(i===state.step) cls='active';
+      return `<span class="pill ${cls}">${l}</span>`;
+    }).join('');
+  }
+
+  function renderStep(){
+    renderPills();
+    const d=state.data, s=state.step;
+    const out=document.getElementById('step-content');
+    if(s===0) renderConcepts(d, out);
+    else if(s===1) renderMethods(d, out);
+    else if(s===2) renderExamples(d, out);
+    else renderQuiz(out);
+  }
+
+  function nextBtn(label, step){
+    return `<div class="card-footer">
+      <span class="step-label">Step ${step} of 4</span>
+      <button class="btn btn-primary" onclick="Chapter._next()">${label} →</button>
+    </div>`;
+  }
+
+  function renderConcepts(d, out){
+    const items = d.concepts.map((c, i) => ({
+      label:        'CONCEPT ' + (i+1),
+      title:        c.name,
+      text:         c.text,
+      audioSection: i === 0 ? 'concepts' : null,
+    }));
+    Teach.start(state.id, items, out, 'Methods', ()=>Chapter._next());
+  }
+
+  function renderMethods(d, out){
+    const items = [];
+
+    // ── Card 1: visual diagram (optional) ──────────────────────
+    const diagFn = DIAGRAMS[state.id];
+    if (diagFn) {
+      items.push({ label:'VISUAL', title:'See It', svg: diagFn(), isDiagram:true });
+    }
+
+    // ── One card per method, all steps of that method together ──
+    const validMethods = d.methods.filter(m => m.steps.some(st => st.trim()));
+    validMethods.forEach((m, mi) => {
+      const stepsHtml = m.steps.filter(st => st.trim()).map((st, i) =>
+        `<div class="method-step-row">
+           <span class="teach-step-num">${i+1}</span>
+           <span class="method-step-text">${st}</span>
+         </div>`
+      ).join('');
+
+      items.push({
+        label:        'METHOD ' + (validMethods.length > 1 ? (mi+1) + ' of ' + validMethods.length : ''),
+        title:        m.name,
+        text:         stepsHtml,
+        audioSection: mi === 0 ? 'steps' : null,  // audio plays once on first method card
+      });
+    });
+
+    Teach.start(state.id, items, out, 'Examples', ()=>Chapter._next());
+  }
+
+  function renderExamples(d, out){
+    // ONE card per example — heading + ALL numbered steps together
+    const items = d.examples.map((ex, ei) => {
+      const stepsHtml = ex.steps.map((st, si) =>
+        `<div class="method-step-row">
+           <span class="teach-step-num">${si+1}</span>
+           <span class="method-step-text">${st}</span>
+         </div>`
+      ).join('');
+
+      return {
+        label:        'EXAMPLE ' + (ei+1) + ' of ' + d.examples.length,
+        title:        ex.hd,
+        text:         stepsHtml,
+        audioSection: ei === 0 ? 'examples' : null,
+      };
+    });
+    Teach.start(state.id, items, out, 'Quiz', ()=>Chapter._next());
+  }
+
+  function renderQuiz(out){
+    const d=state.data;
+    const qs=(d.qs||[]).slice(0,10);   // 10 questions per chapter quiz
+    if(!qs.length){ out.innerHTML='<p>No questions available.</p>'; return; }
+
+    const q=qs[state.qIdx];
+    const opts=makeOptions(q.a);
+    const total=qs.length;
+    const chId=state.id;
+
+    out.innerHTML=`<div class="content-card anim-up">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div class="card-label" style="margin-bottom:0">Quiz</div>
+        <button class="hint-btn" onclick="Hint.open('${chId}')" aria-label="Hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Hint
+        </button>
+      </div>
+      <div class="quiz-header">
+        <span class="quiz-meta">Q ${state.qIdx+1} / ${total}</span>
+        <span class="quiz-meta">${state.qCorrect} correct</span>
+      </div>
+      <div class="pbar-wrap" style="margin-bottom:8px"><div class="pbar-fill" style="width:${state.qIdx/total*100}%"></div></div>
+      <div class="timer-wrap" id="quiz-timer-wrap">
+        <div class="timer-top"><span class="timer-display" id="quiz-timer-display">60s</span></div>
+        <div class="timer-bar-wrap"><div class="timer-bar-fill" id="quiz-timer-bar" style="width:100%"></div></div>
+      </div>
+      <div class="quiz-q">${q.q}</div>
+      <div id="quiz-opts">
+        ${opts.map((o,i)=>`<button class="quiz-option anim-up" style="animation-delay:${i*0.05}s"
+          data-val="${encodeURIComponent(o)}">${o}</button>`).join('')}
+      </div>
+      <div class="submit-btn-wrap">
+        <button id="quiz-submit" class="btn btn-primary btn-block" disabled onclick="Chapter._submit()">Submit Answer</button>
+      </div>
+    </div>`;
+
+    document.querySelectorAll('#quiz-opts .quiz-option').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('#quiz-opts .quiz-option').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.selection=decodeURIComponent(btn.dataset.val);
+        document.getElementById('quiz-submit').disabled=false;
+      });
+    });
+
+    timerStart('quiz-timer-wrap','quiz-timer-display','quiz-timer-bar', 60, ()=>{
+      if(!state.selection) state.selection='__timeout__';
+      Chapter._submit();
+    });
+  }
+
+  function _submit(){
+    timerClear('quiz-timer-wrap');
+    const qs=(state.data.qs||[]).slice(0,10);
+    const q=qs[state.qIdx];
+    const timedOut=(state.selection==='__timeout__');
+    const correct=(!timedOut && state.selection===q.a);
+    if(correct) state.qCorrect++;
+    S.attempts++; if(correct) S.correct++;
+    saveS();
+
+    document.querySelectorAll('#quiz-opts .quiz-option').forEach(btn=>{
+      btn.disabled=true;
+      const v=decodeURIComponent(btn.dataset.val);
+      if(v===q.a) btn.classList.add('correct');
+      else if(btn.classList.contains('selected')&&!correct) btn.classList.add('wrong','anim-shake');
+    });
+    document.getElementById('quiz-submit').disabled=true;
+    if(timedOut){const el=document.querySelector('.quiz-q'); if(el) el.style.borderColor='var(--red)';}
+    vibrate(correct?'ok':'no');
+
+    state.advTimer=setTimeout(()=>{
+      state.selection=null; state.qIdx++;
+      if(state.qIdx>=qs.length) _finish();
+      else renderQuiz(document.getElementById('step-content'));
+    }, timedOut?700:1400);
+  }
+
+  function _finish(){
+    const qs=(state.data.qs||[]).slice(0,10);
+    const total=qs.length;
+    const pct=Math.round(state.qCorrect/total*100);
+    const threshold=(state.data.pass||0.8)*100;
+    const passed=pct>=threshold;
+
+    if(passed && !S.done.includes(state.id)){
+      S.done.push(state.id);
+      saveS();
+      vibrate('win');
+    }
+
+    const circ=2*Math.PI*46;
+    const offset=circ-((pct/100)*circ);
+    const col=passed?'var(--green)':'var(--red)';
+
+    document.getElementById('step-content').innerHTML=`
+      <div class="content-card">
+        <div class="score-wrap anim-pop">
+          <div class="score-ring-container">
+            <svg width="120" height="120" viewBox="0 0 100 100">
+              <circle class="score-ring-bg" cx="50" cy="50" r="46" fill="none" stroke="var(--border)" stroke-width="7"/>
+              <circle cx="50" cy="50" r="46" fill="none" stroke="${col}" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                style="transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 0.9s ease"/>
+            </svg>
+            <div class="score-number" style="color:${col}">${pct}%</div>
+          </div>
+          <div class="score-title">${passed?'🎉 Chapter Passed!':'Keep Going!'}</div>
+          <div class="score-sub">${state.qCorrect} of ${total} correct — need ${threshold}% to pass</div>
+          <button class="btn btn-block" style="margin-bottom:10px" onclick="Chapter._retry()">Try Again</button>
+          ${passed?`<button class="btn btn-primary btn-block" onclick="Chapter.backToList()">Back to ${ChapterList._currentCat ? ChapterList._currentCat.name : 'Chapters'}</button>`:''}
+        </div>
+      </div>`;
+  }
+
+  function _retry(){
+    state.qIdx=0; state.qCorrect=0; state.selection=null;
+    clearTimeout(state.advTimer);
+    renderQuiz(document.getElementById('step-content'));
+    renderPills();
+    document.getElementById('tab-learn').scrollTop=0;
+  }
+
+  function _next(){
+    state.step++;
+    renderStep();
+    document.getElementById('tab-learn').scrollTop=0;
+  }
+
+  return { open, backToList, _next, _submit, _finish, _retry };
+})();
+
+/* ══ PRACTICE MODULE — Candy Crush style ═══════════════════════
+   6 categories → 5 levels each → 30 challenges total
+   Questions from chapters grouped into categories.
+   Progress saved as stars (0–3) per level.
+════════════════════════════════════════════════════════════════ */
+const Practice = (function(){
+
+  /* ── CATEGORIES ─────────────────────────────────────────── */
+  const CATS = [
+    { id:'everyday', icon:'🔢', name:'Everyday Math',
+      color:'#4F9EFF', chapters:['ch01','ch02','ch03'] },
+    { id:'tricks',   icon:'🧮', name:'Number Tricks',
+      color:'#A855F7', chapters:['ch04','ch05','ch06'] },
+    { id:'multiply', icon:'⚡', name:'Speed Multiply',
+      color:'#F59E0B', chapters:['ch07','ch08','ch09','ch10'] },
+    { id:'divide',   icon:'➗', name:'Division Lab',
+      color:'#10B981', chapters:['ch11','ch12'] },
+    { id:'squares',  icon:'🔲', name:'Square Powers',
+      color:'#EF4444', chapters:['ch13','ch14','ch15','ch16'] },
+    { id:'realworld',icon:'💰', name:'Real World',
+      color:'#F97316', chapters:['ch17','ch18','ch19'] },
+  ];
+
+  /* ── LEVEL SPECS ─────────────────────────────────────────── */
+  const LV = [
+    { n:1, name:'Starter',   icon:'🌱', qs:8,  timer:90, pass:.75,
+      desc:'Warm up — 8 questions' },
+    { n:2, name:'Practice',  icon:'🔥', qs:10, timer:60, pass:.70,
+      desc:'Build the habit — 10 questions' },
+    { n:3, name:'Speed',     icon:'⚡', qs:12, timer:45, pass:.75,
+      desc:'Think faster — 12 questions' },
+    { n:4, name:'Challenge', icon:'💪', qs:15, timer:30, pass:.73,
+      desc:'Push limits — 15 questions' },
+    { n:5, name:'Master',    icon:'👑', qs:20, timer:20, pass:.80,
+      desc:'Prove mastery — 20 questions' },
+  ];
+
+  /* ── STATE ────────────────────────────────────────────────── */
+  let _view    = 'grid';        // 'grid' | 'levels' | 'play' | 'result'
+  let _cat     = null;          // current CATS entry
+  let _lv      = null;          // current LV entry
+  let _pool    = [];
+  let _poolIdx = 0;
+  let _score   = 0;
+  let _total   = 0;
+  let _qTimer  = null;
+  let _secsLeft= 0;
+  let _answered= false;
+  let _current = null;
+
+  /* ── PUBLIC: called by Nav when switching to practice tab ── */
+  function init(){
+    _view = 'grid';
+    _render();
+  }
+
+  /* ── MAIN RENDER ROUTER ─────────────────────────────────── */
+  function _render(){
+    if(_view==='grid')   _renderGrid();
+    else if(_view==='levels') _renderLevels();
+    else if(_view==='play')   _renderPlay();
+    else if(_view==='result') _renderResult();
+  }
+
+  /* ── HELPERS ─────────────────────────────────────────────── */
+  function _getStars(catId, lvN){
+    return (S.practiceStars && S.practiceStars[catId+'_'+lvN]) || 0;
+  }
+  function _setStars(catId, lvN, stars){
+    if(!S.practiceStars) S.practiceStars = {};
+    const key = catId+'_'+lvN;
+    if((S.practiceStars[key]||0) < stars) S.practiceStars[key] = stars;
+    saveS();
+  }
+  function _isLvUnlocked(cat, lvN){
+    if(lvN === 1) return _isCatUnlocked(cat);
+    return _getStars(cat.id, lvN-1) > 0;
+  }
+  function _isCatUnlocked(cat){
+    if(S.devMode) return true;
+    return cat.chapters.some(id => S.done.includes(id));
+  }
+  function _catProgress(cat){
+    let total = 0;
+    LV.forEach(lv => total += _getStars(cat.id, lv.n));
+    return total; // max 15
+  }
+  function _buildPool(cat){
+    const all = [];
+    cat.chapters.forEach(id => {
+      const d = DATA[id];
+      if(d && d.qs) d.qs.forEach(q => all.push({...q, chId:id}));
+    });
+    return shuffle([...all]);
+  }
+  function _starsForScore(correct, total, passRate){
+    const pct = correct/total;
+    if(pct >= .95) return 3;
+    if(pct >= .85) return 2;
+    if(pct >= passRate) return 1;
+    return 0;
+  }
+  function _starHtml(n, col){
+    return [1,2,3].map(i =>
+      `<span style="font-size:1.4rem;opacity:${i<=n?1:.2};filter:${i<=n?'none':'grayscale(1)'}">⭐</span>`
+    ).join('');
+  }
+
+  /* ══ VIEW: CATEGORY GRID ═════════════════════════════════════ */
+  function _renderGrid(){
+    const body = document.getElementById('prac-body');
+    if(!body) return;
+
+    const totalStars = CATS.reduce((s,c) => s + _catProgress(c), 0);
+    const maxStars   = CATS.length * LV.length * 3; // 90
+
+    const cards = CATS.map(cat => {
+      const unlocked = _isCatUnlocked(cat);
+      const prog     = _catProgress(cat);
+      const pct      = Math.round(prog / (LV.length*3) * 100);
+      const starsRow = LV.map(lv => {
+        const s = _getStars(cat.id, lv.n);
+        return `<span style="font-size:.75rem;opacity:${s>0?1:.25}">⭐</span>`;
+      }).join('');
+
+      return `
+        <div class="cat-card ${unlocked?'':'cat-locked'}"
+             onclick="${unlocked?`Practice._openCat('${cat.id}')`:''}"
+             style="--cat-color:${cat.color}">
+          <div class="cat-icon">${unlocked ? cat.icon : '🔒'}</div>
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-stars">${unlocked ? starsRow : '<span style="font-size:.7rem;color:var(--text3)">Complete a lesson first</span>'}</div>
+          ${unlocked ? `<div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${cat.color}"></div></div>` : ''}
+        </div>`;
+    }).join('');
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h1 class="page-title" style="margin-bottom:0">Practice</h1>
+        <span style="font-family:var(--font-mono);font-size:.72rem;color:var(--text3)">
+          ⭐ ${totalStars} / ${maxStars}
+        </span>
+      </div>
+      <div class="cat-grid">${cards}</div>`;
+
+    // hide old pbar
+    const pw = document.getElementById('prac-pbar-wrap');
+    if(pw) pw.style.display='none';
+    const fb = document.getElementById('prac-feedback');
+    if(fb) fb.style.display='none';
+  }
+
+  /* ══ VIEW: LEVEL SELECT ══════════════════════════════════════ */
+  function _renderLevels(){
+    const body = document.getElementById('prac-body');
+    if(!body) return;
+
+    const levels = LV.map((lv, i) => {
+      const unlocked = _isLvUnlocked(_cat, lv.n);
+      const stars    = _getStars(_cat.id, lv.n);
+      const done     = stars > 0;
+
+      return `
+        <div class="lv-row ${unlocked?'':'lv-locked'}"
+             onclick="${unlocked?`Practice._startLevel(${lv.n})`:''}"
+             style="${done?'border-color:'+_cat.color+';background:'+_cat.color+'18':''}">
+          <div class="lv-num" style="${done?'background:'+_cat.color:''}">
+            ${done ? _starHtml(stars,'') : unlocked ? lv.icon : '🔒'}
+          </div>
+          <div class="lv-info">
+            <div class="lv-name">${lv.name}</div>
+            <div class="lv-desc">${lv.desc} · ${lv.timer}s/question</div>
+          </div>
+          ${done ? `<div style="font-size:.7rem;color:${_cat.color};font-weight:700">DONE</div>` :
+            unlocked ? `<div style="font-size:.7rem;color:var(--text3)">PLAY</div>` :
+            `<div style="font-size:.7rem;color:var(--text3)">LOCKED</div>`}
+        </div>`;
+    }).join('');
+
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+        <button class="btn btn-ghost btn-sm" onclick="Practice._backToGrid()" style="padding:7px 12px">← Back</button>
+        <span style="font-size:1.5rem">${_cat.icon}</span>
+        <h1 class="page-title" style="margin-bottom:0;color:${_cat.color}">${_cat.name}</h1>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">${levels}</div>`;
+  }
+
+  /* ══ VIEW: PLAY ══════════════════════════════════════════════ */
+  function _renderPlay(){
+    const body = document.getElementById('prac-body');
+    if(!body) return;
+
+    if(_poolIdx >= _pool.length){
+      _pool = shuffle([..._buildPool(_cat)]);
+      _poolIdx = 0;
+    }
+    _current  = _pool[_poolIdx];
+    _answered = false;
+
+    const meta  = CHAPTERS.find(c => c.id === _current.chId);
+    const opts  = makeOptions(_current.a);
+    const pct   = _total/_lv.qs*100;
+
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="Practice._quitLevel()" style="padding:7px 10px;font-size:.75rem">✕ Quit</button>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:.7rem;color:var(--text3);font-weight:600">Q ${_total+1} / ${_lv.qs}</span>
+            <span style="font-size:.7rem;color:var(--text3)">✓ ${_score}</span>
+          </div>
+          <div class="pbar-wrap" style="margin:0"><div class="pbar-fill" style="width:${pct}%;background:${_cat.color}"></div></div>
+        </div>
+      </div>
+
+      <!-- per-question timer -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Time</span>
+        <span id="lv-timer-disp" style="font-family:var(--font-mono);font-size:.8rem;font-weight:700;color:var(--text2)">${_lv.timer}s</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:100px;margin-bottom:14px;overflow:hidden">
+        <div id="lv-timer-bar" style="height:100%;width:100%;background:${_cat.color};border-radius:100px;transition:width 1s linear,background .4s"></div>
+      </div>
+
+      <div class="content-card" style="padding-bottom:12px">
+        <div class="prac-tag" style="margin-bottom:8px;color:${_cat.color};border-color:${_cat.color}40">
+          ${_cat.icon} ${meta?meta.title:''}
+        </div>
+        <div class="prac-q">${_current.q}</div>
+        <div id="lv-opts">
+          ${opts.map((o,i)=>`
+            <button class="quiz-option anim-up" style="animation-delay:${i*.04}s"
+              data-val="${encodeURIComponent(o)}">${o}
+            </button>`).join('')}
+        </div>
+      </div>`;
+
+    document.querySelectorAll('#lv-opts .quiz-option').forEach(btn =>
+      btn.addEventListener('click', () => _answer(btn)));
+
+    _startQTimer();
+  }
+
+  function _startQTimer(){
+    clearTimeout(_qTimer);
+    _secsLeft = _lv.timer;
+    _tickQTimer();
+  }
+
+  function _tickQTimer(){
+    const disp = document.getElementById('lv-timer-disp');
+    const bar  = document.getElementById('lv-timer-bar');
+    if(disp) disp.textContent = _secsLeft + 's';
+    if(disp) disp.style.color = _secsLeft<=5?'var(--red)':'var(--text2)';
+    if(bar){
+      const pct = _secsLeft/_lv.timer*100;
+      bar.style.width = pct+'%';
+      bar.style.background = _secsLeft<=5?'var(--red)':_secsLeft<=10?'var(--gold)':_cat.color;
+    }
+    if(_secsLeft<=0){ _timeout(); return; }
+    _secsLeft--;
+    _qTimer = setTimeout(_tickQTimer, 1000);
+  }
+
+  function _timeout(){
+    if(_answered) return;
+    _answered = true;
+    _total++;
+    document.querySelectorAll('#lv-opts .quiz-option').forEach(b => {
+      b.disabled = true;
+      if(decodeURIComponent(b.dataset.val) === _current.a) b.classList.add('correct');
+    });
+    vibrate('no');
+    _advance();
+  }
+
+  function _answer(btn){
+    if(_answered) return;
+    _answered = true;
+    clearTimeout(_qTimer);
+    _total++;
+    const val = decodeURIComponent(btn.dataset.val);
+    const ok  = val === _current.a;
+    if(ok) _score++;
+
+    document.querySelectorAll('#lv-opts .quiz-option').forEach(b => {
+      b.disabled = true;
+      const v = decodeURIComponent(b.dataset.val);
+      if(v === _current.a) b.classList.add('correct');
+      else if(b===btn && !ok) b.classList.add('wrong','anim-shake');
+    });
+    vibrate(ok?'ok':'no');
+
+    // Flash feedback on timer bar
+    const bar = document.getElementById('lv-timer-bar');
+    if(bar) bar.style.background = ok?'var(--mint)':'var(--red)';
+
+    _advance();
+  }
+
+  function _advance(){
+    _poolIdx++;
+    setTimeout(()=>{
+      if(_total >= _lv.qs){ _finishLevel(); }
+      else { _renderPlay(); }
+    }, 900);
+  }
+
+  /* ══ VIEW: RESULT ════════════════════════════════════════════ */
+  function _finishLevel(){
+    clearTimeout(_qTimer);
+    _view = 'result';
+
+    const stars    = _starsForScore(_score, _total, _lv.pass);
+    const passed   = stars > 0;
+    const pct      = Math.round(_score/_total*100);
+    const prevBest = _getStars(_cat.id, _lv.n);
+
+    if(stars > prevBest){
+      _setStars(_cat.id, _lv.n, stars);
+      vibrate('win');
+    }
+
+    const nextLv = LV.find(l => l.n === _lv.n + 1);
+    const unlockMsg = (passed && nextLv && prevBest===0)
+      ? `<div style="margin:12px 0;padding:10px 14px;border-radius:var(--radius-sm);background:${_cat.color}18;border:1px solid ${_cat.color}40;font-size:.82rem;color:${_cat.color};font-weight:600">
+           🎉 Unlocked: ${nextLv.icon} ${nextLv.name}!
+         </div>` : '';
+
+    const body = document.getElementById('prac-body');
+    if(!body) return;
+
+    body.innerHTML = `
+      <div class="content-card anim-pop" style="text-align:center;padding:28px 20px">
+        <div style="font-size:2rem;margin-bottom:6px">${_cat.icon}</div>
+        <div style="font-family:var(--font-head);font-size:1rem;font-weight:800;color:${_cat.color};margin-bottom:14px">
+          ${_lv.icon} ${_lv.name}
+        </div>
+        <div style="display:flex;justify-content:center;gap:4px;margin-bottom:16px">
+          ${_starHtml(stars, _cat.color)}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 8px">
+            <div style="font-family:var(--font-mono);font-size:1.6rem;font-weight:700;color:var(--mint)">${_score}</div>
+            <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px">Correct</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 8px">
+            <div style="font-family:var(--font-mono);font-size:1.6rem;font-weight:700;color:var(--blue)">${pct}%</div>
+            <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:3px">Accuracy</div>
+          </div>
+        </div>
+        ${unlockMsg}
+        ${!passed ? `<div style="font-size:.8rem;color:var(--text2);margin-bottom:14px">Need ${Math.round(_lv.pass*100)}% to pass. You got ${pct}%. Try again!</div>` : ''}
+        <button class="btn btn-primary btn-block" onclick="Practice._retry()" style="margin-bottom:8px">
+          ${passed ? '▶ Play Again' : '↻ Try Again'}
+        </button>
+        <button class="btn btn-ghost btn-block" onclick="Practice._backToLevels()">
+          Back to ${_cat.name}
+        </button>
+      </div>`;
+  }
+
+  /* ══ NAVIGATION ══════════════════════════════════════════════ */
+  function _openCat(catId){
+    _cat  = CATS.find(c => c.id === catId);
+    _view = 'levels';
+    _render();
+  }
+  function _startLevel(lvN){
+    _lv     = LV.find(l => l.n === lvN);
+    _pool   = _buildPool(_cat);
+    _poolIdx= 0;
+    _score  = 0;
+    _total  = 0;
+    _view   = 'play';
+    _render();
+  }
+  function _retry(){
+    _pool   = _buildPool(_cat);
+    _poolIdx= 0;
+    _score  = 0;
+    _total  = 0;
+    _view   = 'play';
+    _render();
+  }
+  function _backToGrid(){
+    clearTimeout(_qTimer);
+    _view = 'grid';
+    _render();
+  }
+  function _backToLevels(){
+    clearTimeout(_qTimer);
+    _view = 'levels';
+    _render();
+  }
+  function _quitLevel(){
+    clearTimeout(_qTimer);
+    _view = 'levels';
+    _render();
+  }
+
+  return { init, _openCat, _startLevel, _retry, _backToGrid, _backToLevels, _quitLevel };
+})();
+
+/* ══ MATH RACE MODULE ══════════════════════════════════════════
+   3-minute race: answer as many questions as possible.
+   No per-question timer — the 3 min IS the pressure.
+   Questions from all unlocked chapters, shuffled.
+═══════════════════════════════════════════════════════════ */
+const Race = (function(){
+
+  const RACE_SECONDS = 180; // 3 minutes
+  let _timer = null;
+  let _secsLeft = RACE_SECONDS;
+  let _score = 0;
+  let _total = 0;
+  let _pool = [];
+  let _poolIdx = 0;
+  let _running = false;
+  let _answered = false;
+
+  /* ── render the race lobby / start screen ── */
+  function showLobby(){
+    const best = S.raceBest || 0;
+    document.getElementById('race-body').innerHTML = `
+      <div class="content-card anim-up" style="text-align:center;padding:32px 20px;">
+        <div style="font-size:3rem;margin-bottom:12px">🏁</div>
+        <div style="font-family:var(--font-head);font-size:1.5rem;font-weight:800;margin-bottom:6px">
+          3-Minute Math Race
+        </div>
+        <div style="color:var(--text2);font-size:.88rem;line-height:1.7;margin-bottom:8px;max-width:240px;margin-left:auto;margin-right:auto">
+          Answer as many questions as you can before time runs out.
+          Questions from all your unlocked chapters.
+        </div>
+        ${best > 0 ? `<div style="font-family:var(--font-mono);font-size:.8rem;color:var(--gold);margin-bottom:20px">
+          🏆 Personal best: <strong>${best}</strong> correct
+        </div>` : '<div style="margin-bottom:20px"></div>'}
+        <button class="btn btn-primary btn-block" style="max-width:240px;margin:0 auto" onclick="Race.start()">
+          Start Race →
+        </button>
+      </div>`;
+    document.getElementById('race-timer-bar-wrap').style.display = 'none';
+    document.getElementById('race-header-row').style.display = 'none';
+  }
+
+  /* ── start the race ── */
+  function start(){
+    const src = S.devMode ? CHAPTERS.map(c=>c.id) : S.done;
+    const pool = [];
+    src.forEach(id => {
+      const d = DATA[id];
+      if(d && d.qs) d.qs.forEach(q => pool.push({...q, chId:id}));
+    });
+
+    if(!pool.length){
+      document.getElementById('race-body').innerHTML = `
+        <div class="empty-prac">
+          <div class="empty-icon">📚</div>
+          <div class="empty-title">No Questions Yet</div>
+          <div class="empty-desc">Complete at least one chapter in Learn first.</div>
+          <button class="btn btn-primary" onclick="Nav.go('learn')">Go to Learn →</button>
+        </div>`;
+      return;
+    }
+
+    _pool = shuffle([...pool]);
+    _poolIdx = 0;
+    _secsLeft = RACE_SECONDS;
+    _score = 0;
+    _total = 0;
+    _running = true;
+    _answered = false;
+
+    document.getElementById('race-timer-bar-wrap').style.display = 'block';
+    document.getElementById('race-header-row').style.display = 'flex';
+    _updateHeader();
+    _tick();
+    _showQ();
+  }
+
+  /* ── countdown tick ── */
+  function _tick(){
+    clearTimeout(_timer);
+    _updateTimerBar();
+    if(_secsLeft <= 0){ _finish(); return; }
+    _secsLeft--;
+    _timer = setTimeout(_tick, 1000);
+  }
+
+  /* ── show next question ── */
+  function _showQ(){
+    if(!_running) return;
+    _answered = false;
+    if(_poolIdx >= _pool.length){
+      // reshuffled pool
+      _pool = shuffle([..._pool]);
+      _poolIdx = 0;
+    }
+    const q = _pool[_poolIdx];
+    const opts = makeOptions(q.a);
+    const meta = CHAPTERS.find(c => c.id === q.chId);
+
+    document.getElementById('race-body').innerHTML = `
+      <div class="content-card anim-up" style="padding-bottom:10px">
+        <div class="prac-tag" style="margin-bottom:10px">
+          ⚡ ${meta ? meta.title : 'Practice'}
+        </div>
+        <div class="quiz-q" style="font-size:1.1rem;margin-bottom:14px">${q.q}</div>
+        <div id="race-opts">
+          ${opts.map((o,i) => `
+            <button class="quiz-option anim-up" style="animation-delay:${i*.04}s"
+              data-val="${encodeURIComponent(o)}">${o}
+            </button>`).join('')}
+        </div>
+      </div>`;
+
+    document.querySelectorAll('#race-opts .quiz-option').forEach(btn => {
+      btn.addEventListener('click', () => _answer(btn, q));
+    });
+  }
+
+  /* ── handle answer ── */
+  function _answer(btn, q){
+    if(_answered || !_running) return;
+    _answered = true;
+    _total++;
+    const val = decodeURIComponent(btn.dataset.val);
+    const ok = (val === q.a);
+    if(ok){ _score++; }
+    _updateHeader();
+
+    document.querySelectorAll('#race-opts .quiz-option').forEach(b => {
+      b.disabled = true;
+      const v = decodeURIComponent(b.dataset.val);
+      if(v === q.a) b.classList.add('correct');
+      else if(b === btn && !ok) b.classList.add('wrong', 'anim-shake');
+    });
+    vibrate(ok ? 'ok' : 'no');
+
+    _poolIdx++;
+    setTimeout(() => { playSound('slide'); setTimeout(_showQ, 60); }, ok ? 550 : 900);
+  }
+
+  /* ── update score/time header ── */
+  function _updateHeader(){
+    const el = document.getElementById('race-score-display');
+    if(el) el.textContent = `✓ ${_score}  ·  ${_total - _score > 0 ? '✗ '+(_total-_score)+'  ·  ' : ''}${_total} answered`;
+  }
+
+  /* ── update countdown bar ── */
+  function _updateTimerBar(){
+    const pct = (_secsLeft / RACE_SECONDS) * 100;
+    const bar = document.getElementById('race-timer-bar');
+    const disp = document.getElementById('race-timer-display');
+    if(bar){
+      bar.style.width = pct + '%';
+      bar.style.background = _secsLeft <= 30 ? 'var(--red)' : _secsLeft <= 60 ? 'var(--gold)' : 'var(--mint)';
+    }
+    if(disp){
+      const m = Math.floor(_secsLeft/60);
+      const s = String(_secsLeft%60).padStart(2,'0');
+      disp.textContent = m + ':' + s;
+      disp.style.color = _secsLeft <= 30 ? 'var(--red)' : 'var(--text2)';
+    }
+  }
+
+  /* ── race over ── */
+  function _finish(){
+    _running = false;
+    clearTimeout(_timer);
+    vibrate('win');
+
+    const best = S.raceBest || 0;
+    const newBest = _score > best;
+    if(newBest){ S.raceBest = _score; saveS(); }
+
+    const acc = _total > 0 ? Math.round(_score/_total*100) : 0;
+    document.getElementById('race-timer-bar-wrap').style.display = 'none';
+    document.getElementById('race-header-row').style.display = 'none';
+
+    document.getElementById('race-body').innerHTML = `
+      <div class="content-card anim-pop" style="text-align:center;padding:28px 20px">
+        <div style="font-size:2.6rem;margin-bottom:10px">${newBest ? '🏆' : '🏁'}</div>
+        <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:800;margin-bottom:4px">
+          ${newBest ? 'New Personal Best!' : 'Race Complete!'}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:20px 0">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 8px">
+            <div style="font-family:var(--font-mono);font-size:1.8rem;font-weight:700;color:var(--mint)">${_score}</div>
+            <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Correct</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 8px">
+            <div style="font-family:var(--font-mono);font-size:1.8rem;font-weight:700;color:var(--blue)">${_total}</div>
+            <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Attempted</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 8px">
+            <div style="font-family:var(--font-mono);font-size:1.8rem;font-weight:700;color:var(--gold)">${acc}%</div>
+            <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Accuracy</div>
+          </div>
+        </div>
+
+        <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--text3);margin-bottom:20px">
+          Best ever: <span style="color:var(--gold)">${S.raceBest || 0}</span> correct in 3 min
+        </div>
+
+        <button class="btn btn-primary btn-block" onclick="Race.start()" style="margin-bottom:10px">
+          Race Again →
+        </button>
+        <button class="btn btn-ghost btn-block" onclick="Race.showLobby()">Back</button>
+      </div>`;
+  }
+
+  function stop(){
+    _running = false;
+    clearTimeout(_timer);
+  }
+
+  return { start, showLobby, stop };
+})();
+
+/* ══ HINT MODULE ═══════════════════════════════════════════════
+   Bottom-sheet drawer that slides up during quiz or practice.
+   Shows the chapter's methods (with numbered steps) and
+   worked examples so the user can check the technique.
+   Opened by the "Hint" button. Closed by tapping outside or ✕.
+═══════════════════════════════════════════════════════════ */
+/* ─── HINT MODULE ────────────────────────────────────────── */
+const Hint = (function(){
+  function open(chId){
+    const d=DATA[chId]; const meta=CHAPTERS.find(c=>c.id===chId);
+    if(!d) return;
+    document.getElementById('hint-ch-name').textContent=(meta?meta.title:chId)+' — How It Works';
+    let html='';
+    if(d.methods&&d.methods.length){
+      html+='<div class="hint-section"><span class="hint-section-label">Method</span>';
+      d.methods.forEach(m=>{
+        html+=`<div class="hint-method-name">${m.name}</div><ul class="hint-steps">`;
+        m.steps.filter(s=>s.trim()).forEach((s,i)=>{ html+=`<li><span class="hint-dot">${i+1}</span><span>${s}</span></li>`; });
+        html+='</ul>';
+      });
+      html+='</div>';
+    }
+    if(d.examples&&d.examples.length){
+      html+='<div class="hint-section"><span class="hint-section-label">Worked Examples</span>';
+      d.examples.forEach(ex=>{
+        html+=`<div class="hint-ex"><div class="hint-ex-hd">${ex.hd}</div><ul class="hint-ex-steps">`;
+        ex.steps.forEach(s=>{ html+=`<li>${s}</li>`; });
+        html+='</ul></div>';
+      });
+      html+='</div>';
+    }
+    document.getElementById('hint-body').innerHTML=html;
+    document.getElementById('hint-body').scrollTop=0;
+    document.getElementById('hint-overlay').classList.add('open');
+    playSound('slide');
+  }
+  function close(){
+    document.getElementById('hint-overlay').classList.remove('open');
+  }
+  function closeIfOutside(e){
+    if(e.target===document.getElementById('hint-overlay')) close();
+  }
+  return {open,close,closeIfOutside};
+})();
+
+
+/* ══ TEACH MODULE ══════════════════════════════════════════════════════
+   Interactive one-card-at-a-time lesson presenter.
+   Receives a list of items from chapter.js and renders them one by one.
+   Calls Voice.speak() once per section (not per card).
+══════════════════════════════════════════════════════════════════════ */
+
+const Teach = (function(){
+
+  let _items = [], _pos = 0, _out = null, _nextLabel = '', _onDone = null;
+  let _chId  = null;
+
+  function start(chId, items, out, nextLabel, onDone){
+    _chId      = chId;
+    _items     = items;
+    _pos       = 0;
+    _out       = out;
+    _nextLabel = nextLabel;
+    _onDone    = onDone;
+    render();
+  }
+
+  function render(){
+    if (!_out) return;
+    const item   = _items[_pos];
+    const isLast = _pos === _items.length - 1;
+    const total  = _items.length;
+
+    /* ── card HTML ── */
+    let itemHtml = '';
+    if (item.isDiagram){
+      itemHtml = `
+        <div class="diagram-wrap anim-slide-in">
+          <div class="diagram-label">📊  VISUAL</div>
+          <div class="diagram-svg-wrap">${item.svg}</div>
+        </div>`;
+    } else {
+      const numDot    = item.stepNum ? `<span class="teach-step-num">${item.stepNum}</span>` : '';
+      const titleHtml = item.title
+        ? `<div class="teach-text" style="font-weight:700;font-size:.95rem;margin-bottom:4px;color:var(--text)">${numDot}${item.title}</div>` : '';
+      const textHtml  = item.text
+        ? `<div class="teach-text" style="margin-top:${item.stepNum?'6px':'2px'}">${item.text}</div>` : '';
+      itemHtml = `
+        <div class="teach-item active anim-slide-in">
+          <div class="teach-label">${item.label}</div>
+          ${titleHtml}${textHtml}
+        </div>`;
+    }
+
+    /* ── progress dots ── */
+    const dots = _items.map((_,i) =>
+      `<span style="display:inline-block;width:${i===_pos?14:6}px;height:6px;border-radius:3px;
+        background:${i===_pos?'var(--blue)':i<_pos?'var(--border2)':'var(--border)'};
+        transition:all .25s;margin:0 2px"></span>`
+    ).join('');
+
+    _out.innerHTML = `
+      <div class="content-card anim-up" style="padding-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-label" style="margin-bottom:0">${item.isDiagram ? 'Visual' : 'Lesson'}</div>
+          <span class="teach-counter">${_pos+1} / ${total}</span>
+        </div>
+        ${itemHtml}
+        <div class="teach-nav">
+          <div style="display:flex;align-items:center;gap:4px">${dots}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            ${_pos > 0
+              ? `<button class="btn btn-ghost btn-sm" onclick="Teach.prev()" style="padding:7px 12px">←</button>`
+              : ''}
+            ${isLast
+              ? `<button class="btn btn-primary" onclick="Teach.done()">${_nextLabel} →</button>`
+              : `<button class="btn btn-primary" onclick="Teach.next()" style="padding:8px 18px">
+                  ${_pos === 0 && total > 1 ? 'Begin →' : 'Next →'}
+                </button>`
+            }
+          </div>
+        </div>
+      </div>`;
+
+    /* ── trigger audio — only on the FIRST card of each section ──
+       item.audioSection is set by chapter.js only on the first card.
+       This means the section audio plays once, then continues as the
+       user taps through the remaining cards in that section.        */
+    if (item.audioSection){
+      Voice.speak(_chId, item.audioSection);
+    }
+  }
+
+  function next(){ if (_pos < _items.length - 1){ _pos++; render(); } }
+  function prev(){ if (_pos > 0){ _pos--; render(); } }
+  function done(){ Voice.stop(); if (_onDone) _onDone(); }
+
+  return { start, next, prev, done };
+
+})();
+
+/* ══ VOICE MODULE ══════════════════════════════════════════════════════
+   4-file-per-chapter audio system.
+
+   FILE NAMING — drop these into the audio/ folder as you generate them:
+   ─────────────────────────────────────────────────────────────────────
+   audio/ch01_intro.mp3       ← hook that plays when chapter opens
+   audio/ch01_concepts.mp3    ← all concepts narrated as one flowing piece
+   audio/ch01_steps.mp3       ← all method steps narrated as one piece
+   audio/ch01_examples.mp3    ← all worked examples narrated as one piece
+
+   Repeat for ch02 → ch19. That's 76 files total.
+
+   HOW PLAYBACK WORKS:
+   ─────────────────────────────────────────────────────────────────────
+   • intro     → plays once when the chapter opens
+   • concepts  → plays when the user reaches the first concept card
+   • steps     → plays when the user reaches the first method/step card
+   • examples  → plays when the user reaches the first example card
+   • diagram   → no dedicated audio (diagram is visual — keep it silent)
+
+   The audio runs alongside the cards. The user taps through at their
+   own pace while the narration plays. It doesn't stop between cards.
+   This is intentional — it feels like a teacher talking while you read.
+
+   FALLBACK:
+   ─────────────────────────────────────────────────────────────────────
+   If a file doesn't exist yet for a chapter, the app silently skips.
+   No errors. No robotic TTS. Just silence until you add the file.
+   This lets you launch with ch01 complete and add chapters over time.
+
+   ELEVENLABS RECOMMENDED SETTINGS:
+   ─────────────────────────────────────────────────────────────────────
+   Model:      Eleven Multilingual v2
+   Stability:  0.45  (lower = more natural expression)
+   Similarity: 0.80
+   Style:      0.20  (subtle warmth without overdoing it)
+   Speed:      0.90  (slightly slower than default — easier to follow)
+   Format:     MP3, 128kbps
+══════════════════════════════════════════════════════════════════════ */
+
+const Voice = (function(){
+
+  /* ── STATE ─────────────────────────────────────────────────────── */
+  let enabled  = false;
+  let _current = null;   // currently playing Audio object
+  let _lastKey = null;   // prevents replaying the same file on re-render
+
+  /* ══ AUDIO FILE REGISTRY ════════════════════════════════════════
+     Add a line here for each chapter as you generate the audio.
+     Format:  chXX: ['intro','concepts','steps','examples']
+     Leave out any type you haven't recorded yet — the app skips it.
+  ════════════════════════════════════════════════════════════════ */
+  const READY = {
+    ch01: ['intro', 'concepts', 'steps', 'examples'],
+    ch02: ['intro', 'concepts', 'steps', 'examples'],
+    ch03: ['intro', 'concepts', 'steps', 'examples'],
+    ch04: ['intro', 'concepts', 'steps', 'examples'],
+    ch05: ['intro', 'concepts', 'steps', 'examples'],
+    ch06: ['intro', 'concepts', 'steps', 'examples'],
+    ch07: ['intro', 'concepts', 'steps', 'examples'],
+    ch08: ['intro', 'concepts', 'steps', 'examples'],
+    ch09: ['intro', 'concepts', 'steps', 'examples'],
+    ch10: ['intro', 'concepts', 'steps', 'examples'],
+    ch11: ['intro', 'concepts', 'steps', 'examples'],
+    ch12: ['intro', 'concepts', 'steps', 'examples'],
+    ch13: ['intro', 'concepts', 'steps', 'examples'],
+    ch14: ['intro', 'concepts', 'steps', 'examples'],
+    ch15: ['intro', 'concepts', 'steps', 'examples'],
+    ch16: ['intro', 'concepts', 'steps', 'examples'],
+    ch17: ['intro', 'concepts', 'steps', 'examples'],
+    ch18: ['intro', 'concepts', 'steps', 'examples'],
+    ch19: ['intro', 'concepts', 'steps', 'examples'],
+  };
+
+  /* ── PUBLIC: toggle voice on/off ────────────────────────────── */
+  function toggle(){
+    enabled = !enabled;
+    if (!enabled) stop();
+    _updateBtn();
+    Toast.show(enabled ? '🎙 Voice On' : '🔇 Voice Off');
+  }
+
+  /* ── PUBLIC: speak(chId, type) ──────────────────────────────────
+     chId  e.g. 'ch01'
+     type  'intro' | 'concepts' | 'steps' | 'examples'
+
+     Called by chapter.js at the right moment.
+     The 'diagram' type is intentionally silent.
+  ─────────────────────────────────────────────────────────────── */
+  function speak(chId, type){
+    if (!enabled) return;
+    if (type === 'diagram') return;   // visual card — no audio
+
+    const chReady = READY[chId] || [];
+    if (!chReady.includes(type)) return;  // file not recorded yet
+
+    const key = `${chId}_${type}`;
+    if (key === _lastKey && _current && !_current.paused) return; // already playing
+
+    stop();
+    _lastKey = key;
+    _playMp3(`audio/${key}.mp3`);
+  }
+
+  /* ── PUBLIC: stop ───────────────────────────────────────────── */
+  function stop(){
+    if (_current){
+      _current.pause();
+      _current.currentTime = 0;
+      _current = null;
+    }
+    _lastKey = null;
+    _setSpeaking(false);
+  }
+
+  /* ── PRIVATE: play an MP3 ───────────────────────────────────── */
+  function _playMp3(src){
+    const audio = new Audio(src);
+    audio.volume = 1.0;
+    _current = audio;
+    _setSpeaking(true);
+    audio.onended = () => { _current = null; _setSpeaking(false); };
+    audio.onerror = () => { _current = null; _setSpeaking(false); };
+    audio.play().catch(() => { _current = null; _setSpeaking(false); });
+  }
+
+  /* ── PUBLIC: pre-warm ─────────────────────────────────────────
+     Called by App.start() on the first user tap.
+     Silently loads ch01_intro so the browser audio context is
+     unlocked and the file is buffered before the chapter opens.
+  ─────────────────────────────────────────────────────────────── */
+  function _prewarm(){
+    try {
+      const a = new Audio('audio/ch01_intro.mp3');
+      a.volume = 0;
+      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(()=>{});
+    } catch(e){}
+  }
+
+  /* ── FIX 2: Stop audio when user leaves the app ───────────────
+     Covers: switching apps, locking screen, switching browser tabs.
+  ─────────────────────────────────────────────────────────────── */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+  });
+
+  /* ── PRIVATE: update voice button UI ───────────────────────── */
+  function _setSpeaking(isSpeaking){
+    const btn = document.getElementById('voice-btn');
+    if (!btn) return;
+    const isOn = enabled && isSpeaking;
+    btn.classList.toggle('speaking', isOn);
+    const dot = btn.querySelector('.voice-dot');
+    if (dot) dot.style.display = isOn ? 'inline-block' : 'none';
+  }
+
+  function _updateBtn(){
+    const btn = document.getElementById('voice-btn');
+    if (!btn) return;
+    btn.style.borderColor = enabled ? 'var(--blue)' : '';
+    btn.style.color       = enabled ? 'var(--blue)' : '';
+    _setSpeaking(false);
+  }
+
+  function isEnabled(){ return enabled; }
+
+  return { toggle, speak, stop, isEnabled, _prewarm };
+
+})();
+
+/* ══ BOOT ══════════════════════════════════════════════════════
+   Runs once when the page fully loads.
+   Loads saved user state from localStorage.
+   Registers the service worker (enables offline / PWA mode).
+═══════════════════════════════════════════════════════════ */
+/* ─── BOOT ───────────────────────────────────────────────── */
+window.addEventListener('load', ()=>{
+  loadS();
+  QGen.generate();  // expand question pools to ~50 per chapter
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+});
+
+</script>
+
+</body>
+</html>
