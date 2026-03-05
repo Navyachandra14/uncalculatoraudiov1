@@ -1,0 +1,31 @@
+/* ══ DESIGN TOKENS ═══════════════════════════════════════════
+   All colour, spacing, and font variables live here.
+   Change a value here and it updates everywhere instantly.
+═══════════════════════════════════════════════════════════ */
+/* ══ DESIGN TOKENS ══════════════════════════════════════ */
+:root {
+  --bg:         #08111f;
+  --surface:    #0e1e35;
+  --surface2:   #162844;
+  --border:     #1e3a5f;
+  --border2:    #264d80;
+  --text:       #e8f4fd;
+  --text2:      #7ba3cc;
+  --text3:      #3d6d99;
+  --mint:       #00e5a0;
+  --mint-dim:   rgba(0,229,160,0.12);
+  --blue:       #4da6ff;
+  --blue-dim:   rgba(77,166,255,0.1);
+  --gold:       #ffd166;
+  --gold-dim:   rgba(255,209,102,0.1);
+  --red:        #ff6b6b;
+  --red-dim:    rgba(255,107,107,0.1);
+  --green:      #06d6a0;
+  --green-dim:  rgba(6,214,160,0.12);
+  --radius:     16px;
+  --radius-sm:  10px;
+  --nav:        64px;
+  --font-head:  'Syne', sans-serif;
+  --font-body:  'DM Sans', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+}

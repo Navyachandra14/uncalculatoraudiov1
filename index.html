@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The Uncalculator</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- ══ STYLES ════════════════════════════════════════════════
+     4 CSS files — each handles one area:
+       tokens.css    → colours, fonts, spacing variables
+       base.css      → reset, buttons, shell, nav, typography
+       chapters.css  → chapter list, quiz, practice, stats, settings
+       components.css→ hint drawer, timer, voice, diagrams, animations
+════════════════════════════════════════════════════════════ -->
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/chapters.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<!-- ══ TOAST ════════════════════════════════════════════════ -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══ LANDING VIEW ══════════════════════════════════════════ -->
+<div id="view-landing">
+  <p class="landing-eyebrow">Mental Math Training</p>
+  <h1 class="landing-title" id="landing-title-tap">
+    <span class="line1">The</span>
+    <span class="line2">Uncalculator</span>
+  </h1>
+  <p class="landing-sub">19 real-world techniques to master mental math — no calculator needed.</p>
+  <div class="landing-cta">
+    <button class="btn btn-primary btn-block" onclick="App.start()">
+      Start Learning
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn btn-ghost btn-block" onclick="App.start(); Nav.go('stats')">View Progress</button>
+  </div>
+</div>
+
+<!-- ══ APP VIEW ═══════════════════════════════════════════════ -->
+<div id="view-app" class="hidden">
+
+  <!-- ── LEARN TAB ──────────────────────────────────────── -->
+  <div id="tab-learn" class="tab-pane scroll-area">
+    <!-- Level 1: category grid -->
+    <div id="screen-categories">
+      <h1 class="page-title">Learn</h1>
+      <div class="pbar-wrap" style="margin-bottom:14px"><div class="pbar-fill" id="global-pbar" style="width:0%"></div></div>
+      <div id="learn-cat-grid"></div>
+    </div>
+    <!-- Level 2: chapters within a category -->
+    <div id="screen-list" class="hidden">
+      <div class="back-row" id="back-to-cats" onclick="ChapterList.renderCategories()" role="button" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-to-cats-label">Categories</span>
+      </div>
+      <div id="cat-header-row" style="display:flex;align-items:center;gap:10px;margin-bottom:14px"></div>
+      <div id="chapter-list"></div>
+    </div>
+    <!-- Level 3: chapter detail -->
+    <div id="screen-detail" class="hidden">
+      <div class="back-row" id="back-to-cat" onclick="ChapterList.backFromDetail()" role="button" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="back-to-cat-label">Back</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;">
+        <div>
+          <h2 class="ch-detail-title" id="detail-title" style="margin-bottom:2px"></h2>
+          <p class="ch-detail-goal" id="detail-goal"></p>
+        </div>
+        <button class="voice-btn" id="voice-btn" onclick="Voice.toggle()" aria-label="Toggle voice narration" style="margin-top:4px;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Voice
+          <span class="voice-dot"></span>
+        </button>
+      </div>
+      <div class="step-pills" id="step-pills"></div>
+      <div id="step-content"></div>
+    </div>
+  </div>
+
+  <!-- ── PRACTICE TAB ───────────────────────────────────── -->
+  <div id="tab-practice" class="tab-pane scroll-area" style="display:none">
+
+    <!-- mode toggle: Practice / Race -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="mode-btn-practice" class="mode-tab active" onclick="PracticeNav.show('practice')">⚡ Practice</button>
+      <button id="mode-btn-race"     class="mode-tab"        onclick="PracticeNav.show('race')">🏁 Race</button>
+    </div>
+
+    <!-- ── PRACTICE MODE (owned entirely by practice.js) ── -->
+    <div id="mode-practice">
+      <div id="prac-body"></div>
+      <div class="pbar-wrap" id="prac-pbar-wrap" style="display:none"><div class="pbar-fill" id="prac-pbar"></div></div>
+      <div class="feedback-strip" id="prac-feedback" style="display:none">
+        <span id="prac-fb-icon"></span><span id="prac-fb-text"></span>
+      </div>
+    </div>
+
+    <!-- ── RACE MODE ── -->
+    <div id="mode-race" style="display:none">
+      <div id="race-timer-bar-wrap" style="display:none;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);font-weight:700">Time</span>
+          <span id="race-timer-display" style="font-family:var(--font-mono);font-size:.8rem;font-weight:700;color:var(--text2)">3:00</span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden">
+          <div id="race-timer-bar" style="height:100%;width:100%;background:var(--mint);border-radius:100px;transition:width 1s linear,background .4s"></div>
+        </div>
+      </div>
+      <div id="race-header-row" style="display:none;margin-bottom:12px;font-family:var(--font-mono);font-size:.78rem;color:var(--text2);font-weight:600">
+        <span id="race-score-display">✓ 0 · 0 answered</span>
+      </div>
+      <div id="race-body"></div>
+    </div>
+
+  </div>
+
+  <!-- ── STATS TAB ──────────────────────────────────────── -->
+  <div id="tab-stats" class="tab-pane scroll-area" style="display:none">
+    <h1 class="page-title">My Progress</h1>
+    <div class="stat-grid">
+      <div class="stat-card anim-up"><div class="stat-val" id="s-done">0</div><div class="stat-name">Chapters Done</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.06s"><div class="stat-val" id="s-pct">0%</div><div class="stat-name">Complete</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.12s"><div class="stat-val" id="s-acc">—</div><div class="stat-name">Accuracy</div></div>
+      <div class="stat-card anim-up" style="animation-delay:.18s"><div class="stat-val" id="s-att">0</div><div class="stat-name">Questions</div></div>
+    </div>
+    <div class="content-card" style="text-align:center;padding:20px;">
+      <div class="pbar-wrap" style="margin-bottom:10px;"><div class="pbar-fill" id="stats-pbar" style="width:0%"></div></div>
+      <p style="font-size:0.82rem;color:var(--text3);">Complete chapters in Learn to track your mastery.</p>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS TAB ───────────────────────────────────── -->
+  <div id="tab-settings" class="tab-pane scroll-area" style="display:none">
+    <h1 class="page-title">Settings</h1>
+    <div class="settings-card">
+      <div class="settings-row">
+        <div><div class="settings-label">Sound Effects</div><div class="settings-desc">Chime for correct, buzz for wrong</div></div>
+        <button id="sound-toggle-btn" class="btn btn-sm" onclick="Settings.toggleSound()" style="min-width:64px">On</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Quiz Timer</div><div class="settings-desc">60s countdown per question</div></div>
+        <button id="timer-toggle-btn" class="btn btn-sm" onclick="Settings.toggleTimer()" style="min-width:64px">On</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Reset All Progress</div><div class="settings-desc">Clears chapters, stats, and streaks</div></div>
+        <button class="btn btn-danger btn-sm" onclick="Settings.initiateReset()">Reset</button>
+      </div>
+    </div>
+    <div id="reset-confirm" class="content-card hidden" style="border-color:var(--red);">
+      <p style="color:var(--red);font-size:0.88rem;margin-bottom:14px;font-weight:600;">⚠️ This cannot be undone. Delete everything?</p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger btn-block" onclick="Settings.confirmReset()">Yes, Delete All</button>
+        <button class="btn btn-ghost btn-block" onclick="Settings.cancelReset()">Cancel</button>
+      </div>
+    </div>
+    <div class="settings-card" style="margin-top:4px;">
+      <div class="settings-row">
+        <div><div class="settings-label">The Uncalculator</div><div class="settings-desc">Survival math for the modern mind</div></div>
+        <span class="version-tag">v2.0</span>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Chapters</div><div class="settings-desc">19 techniques, Easy → Hard</div></div>
+        <span class="version-tag">19</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAV ─────────────────────────────────────── -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-tab="learn" onclick="Nav.go('learn')" aria-label="Learn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Learn
+    </button>
+    <button class="nav-btn" data-tab="practice" onclick="Nav.go('practice')" aria-label="Practice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Practice
+    </button>
+    <button class="nav-btn" data-tab="stats" onclick="Nav.go('stats')" aria-label="Stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Stats
+    </button>
+    <button class="nav-btn" data-tab="settings" onclick="Nav.go('settings')" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- ══ HINT DRAWER ════════════════════════════════════════════ -->
+<div id="hint-overlay" onclick="Hint.closeIfOutside(event)">
+  <div id="hint-drawer">
+    <div class="hint-handle"></div>
+    <div class="hint-header">
+      <span class="hint-title" id="hint-ch-name">Method &amp; Examples</span>
+      <button class="hint-close" onclick="Hint.close()" aria-label="Close">✕</button>
+    </div>
+    <div class="hint-body" id="hint-body"></div>
+  </div>
+</div>
+
+<!-- ══ SCRIPTS ════════════════════════════════════════════════
+     data.js      → CHAPTERS + DATA
+     diagrams.js  → DIAGRAMS
+     state.js     → S, loadS, saveS
+     utils.js     → shuffle, makeOptions, playSound, timer
+     ui.js        → Toast, App, Nav, ChapterList, Stats, Settings
+     chapter.js   → Chapter (learn flow + 10-question quiz)
+     practice.js  → Practice (deck, all questions)
+     race.js      → Race (3-minute math race)
+     hint.js      → Hint (bottom sheet)
+     teach.js     → Teach (card-by-card teacher)
+     voice.js     → Voice (MP3 + TTS fallback)
+     boot.js      → window.onload
+════════════════════════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/qgen.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/chapter.js"></script>
+<script src="js/practice.js"></script>
+<script src="js/race.js"></script>
+<script src="js/hint.js"></script>
+<script src="js/teach.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/boot.js"></script>
+
+</body>
+</html>
