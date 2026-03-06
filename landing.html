@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Uncalculator — Mental Maths, Rewired</title>
+<meta name="description" content="19 Vedic mental maths techniques with audio narration, timed practice and a global leaderboard. Free. No download.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZWJWLZ0GCD"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-ZWJWLZ0GCD');</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070e1a;--surface:#0d1a2e;--border:#1a3050;--text:#e4f0fc;--text2:#7ba8d4;--text3:#6096c4;--mint:#00e5a0;--gold:#ffd166;--blue:#4da6ff;--red:#ff6b6b}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,229,160,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px}
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);border-bottom:1px solid var(--border);background:rgba(7,14,26,.85);padding:16px 0}
+nav .wrap{display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--mint);letter-spacing:-.02em}
+.nav-cta{background:var(--mint);color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;padding:8px 20px;border-radius:100px;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,229,160,.35)}
+.hero{padding:100px 0 70px;text-align:center}
+.eyebrow{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--mint);border:1px solid rgba(0,229,160,.3);padding:5px 14px;border-radius:100px;margin-bottom:28px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,8vw,5.2rem);font-weight:800;line-height:1.0;letter-spacing:-.04em;margin-bottom:24px}
+h1 .accent{color:var(--mint)}
+h1 .dim{color:var(--text2)}
+.hero-sub{font-size:clamp(1rem,2.5vw,1.15rem);color:var(--text2);max-width:520px;margin:0 auto 40px;line-height:1.7}
+.btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-p{background:var(--mint);color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:100px;text-decoration:none;transition:all .2s;box-shadow:0 0 40px rgba(0,229,160,.2);animation:pglow 3s ease infinite}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,229,160,.4)}
+.btn-s{border:1px solid var(--border);color:var(--text2);font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:100px;text-decoration:none;transition:all .2s}
+.btn-s:hover{border-color:var(--text2);color:var(--text)}
+/* phone mockup */
+.phone-wrap{margin:60px auto 0;max-width:260px;animation:fadeUp .8s .4s ease both}
+.phone{background:var(--surface);border:1px solid var(--border);border-radius:28px;padding:20px 16px;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04)}
+.phone-tag{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--mint);font-family:'JetBrains Mono',monospace;font-weight:700;margin-bottom:10px}
+.phone-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.phone-q{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--text);line-height:1.3}
+.ph-circ{width:36px;height:36px;position:relative;flex-shrink:0}
+.ph-circ svg{transform:rotate(-90deg)}
+.ph-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;color:var(--mint)}
+.phone-opts{display:flex;flex-direction:column;gap:8px}
+.p-opt{padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:.88rem;color:var(--text2);background:rgba(255,255,255,.02)}
+.p-opt.ok{border-color:var(--mint);color:var(--mint);background:rgba(0,229,160,.08)}
+/* stats */
+.stats{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:32px 0;margin-top:70px}
+.stats .wrap{display:grid;grid-template-columns:repeat(3,1fr)}
+.stat{text-align:center;padding:0 20px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.sn{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;color:var(--mint);line-height:1}
+.sl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-top:6px}
+/* sections */
+section{padding:80px 0}
+.s-eye{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mint);margin-bottom:16px}
+.s-title{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:16px}
+.s-sub{color:var(--text2);font-size:1rem;max-width:480px;line-height:1.7;margin-bottom:48px}
+/* chapters */
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;transition:border-color .2s,transform .2s}
+.ch-card:hover{border-color:var(--mint);transform:translateY(-2px)}
+.ch-n{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text3);font-weight:700;letter-spacing:.1em;margin-bottom:8px}
+.ch-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;color:var(--text);line-height:1.3}
+.ch-pre{font-size:.76rem;color:var(--text2);margin-top:5px}
+/* steps */
+.steps{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:52px 1fr;gap:20px;padding:28px 0;border-bottom:1px solid var(--border)}
+.step:last-child{border-bottom:none}
+.step-num{width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.85rem;color:var(--mint);flex-shrink:0}
+.step-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px}
+.step-desc{color:var(--text2);font-size:.92rem;line-height:1.6}
+/* features */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.feat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+.feat-icon{font-size:1.5rem;margin-bottom:12px}
+.feat-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;margin-bottom:8px}
+.feat-desc{color:var(--text2);font-size:.88rem;line-height:1.6}
+/* cta */
+.cta-block{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:60px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-block::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,160,.1),transparent 70%);pointer-events:none}
+.cta-block h2{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.8rem,4vw,2.5rem);letter-spacing:-.03em;margin-bottom:14px}
+.cta-block p{color:var(--text2);font-size:1rem;max-width:400px;margin:0 auto 32px;line-height:1.7}
+.price-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:700;color:var(--gold);border:1px solid rgba(255,209,102,.3);padding:4px 14px;border-radius:100px;margin-bottom:24px}
+footer{border-top:1px solid var(--border);padding:32px 0;text-align:center;font-size:.78rem;color:var(--text3)}
+footer a{color:var(--text2);text-decoration:none}
+footer a:hover{color:var(--mint)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pglow{0%,100%{box-shadow:0 0 40px rgba(0,229,160,.2)}50%{box-shadow:0 0 60px rgba(0,229,160,.4)}}
+.hero .eyebrow{animation:fadeUp .6s ease both}
+.hero h1{animation:fadeUp .6s .1s ease both}
+.hero-sub{animation:fadeUp .6s .2s ease both}
+.btns{animation:fadeUp .6s .3s ease both}
+@media(max-width:600px){.stats .wrap{grid-template-columns:1fr;gap:20px}.stat{border-right:none;border-bottom:1px solid var(--border);padding:0 0 20px}.stat:last-child{border-bottom:none;padding:0}.cta-block{padding:40px 20px}.step{grid-template-columns:44px 1fr}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="nav-logo">The Uncalculator</div>
+  <a href="https://navyachandra14.github.io/uncalculatoraudiov1" class="nav-cta" target="_blank">Open App →</a>
+</div></nav>
+
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">19 Vedic Mental Maths Techniques</div>
+  <h1>Calculate anything<br><span class="dim">without</span> a <span class="accent">calculator.</span></h1>
+  <p class="hero-sub">The shortcuts your school never taught you. Audio-guided, timed practice, global leaderboard. Free. No download.</p>
+  <div class="btns">
+    <a href="https://navyachandra14.github.io/uncalculatoraudiov1" class="btn-p" target="_blank">Start Learning Free →</a>
+    <a href="#gumroad" class="btn-s">Support the App</a>
+  </div>
+  <div class="phone-wrap"><div class="phone">
+    <div class="phone-row">
+      <div class="phone-tag">CH 07 · Near 100 Multiplication</div>
+      <div class="ph-circ">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="#1a3050" stroke-width="3"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="#00e5a0" stroke-width="3" stroke-linecap="round" stroke-dasharray="87.96" stroke-dashoffset="22"/>
+        </svg>
+        <div class="ph-label">45</div>
+      </div>
+    </div>
+    <div class="phone-q">97 × 94 = ?</div>
+    <div class="phone-opts" style="margin-top:14px">
+      <div class="p-opt">9,018</div>
+      <div class="p-opt ok">✓ 9,118</div>
+      <div class="p-opt">9,218</div>
+      <div class="p-opt">8,918</div>
+    </div>
+  </div></div>
+</div></div>
+
+<div class="stats"><div class="wrap">
+  <div class="stat"><div class="sn">19</div><div class="sl">Chapters</div></div>
+  <div class="stat"><div class="sn">76</div><div class="sl">Audio Lessons</div></div>
+  <div class="stat"><div class="sn">5</div><div class="sl">Practice Levels</div></div>
+</div></div>
+
+<section><div class="wrap">
+  <div class="s-eye">What You'll Learn</div>
+  <h2 class="s-title">19 techniques. Real shortcuts.</h2>
+  <p class="s-sub">Each chapter teaches one pattern — the kind that makes you look unreasonably good at maths.</p>
+  <div class="ch-grid">
+    <div class="ch-card"><div class="ch-n">CH 01</div><div class="ch-name">Left-to-Right Addition</div><div class="ch-pre">$3.99 + $2.75 in 2s</div></div>
+    <div class="ch-card"><div class="ch-n">CH 02</div><div class="ch-name">Complement Subtraction</div><div class="ch-pre">Borrow nothing, ever</div></div>
+    <div class="ch-card"><div class="ch-n">CH 03</div><div class="ch-name">Doubling &amp; Halving</div><div class="ch-pre">14×4 = double twice</div></div>
+    <div class="ch-card"><div class="ch-n">CH 04</div><div class="ch-name">Digital Root Check</div><div class="ch-pre">Spot errors instantly</div></div>
+    <div class="ch-card"><div class="ch-n">CH 05</div><div class="ch-name">×11 Sandwich Rule</div><div class="ch-pre">67×11 = 737. Done.</div></div>
+    <div class="ch-card"><div class="ch-n">CH 06</div><div class="ch-name">×12 Decomposition</div><div class="ch-pre">15% tip in 3 seconds</div></div>
+    <div class="ch-card"><div class="ch-n">CH 07</div><div class="ch-name">Near 100 Multiply</div><div class="ch-pre">97×94 = 9,118</div></div>
+    <div class="ch-card"><div class="ch-n">CH 08</div><div class="ch-name">Above 100 Multiply</div><div class="ch-pre">103×106 instantly</div></div>
+    <div class="ch-card"><div class="ch-n">CH 09</div><div class="ch-name">Criss-Cross ×</div><div class="ch-pre">Split and add</div></div>
+    <div class="ch-card"><div class="ch-n">CH 10</div><div class="ch-name">2-Digit × 2-Digit</div><div class="ch-pre">Vertically &amp; Crosswise</div></div>
+    <div class="ch-card"><div class="ch-n">CH 11</div><div class="ch-name">Chunking Division</div><div class="ch-pre">195÷3 in your head</div></div>
+    <div class="ch-card"><div class="ch-n">CH 12</div><div class="ch-name">÷5 Shortcut</div><div class="ch-pre">Double then ÷10</div></div>
+    <div class="ch-card"><div class="ch-n">CH 13</div><div class="ch-name">×5 Endings Squares</div><div class="ch-pre">75² = 5,625 instantly</div></div>
+    <div class="ch-card"><div class="ch-n">CH 14</div><div class="ch-name">Near 50 Squares</div><div class="ch-pre">Anchor at 50</div></div>
+    <div class="ch-card"><div class="ch-n">CH 15</div><div class="ch-name">General Squares</div><div class="ch-pre">Duplex method</div></div>
+    <div class="ch-card"><div class="ch-n">CH 16</div><div class="ch-name">Cube Roots</div><div class="ch-pre">∛54,872 in seconds</div></div>
+    <div class="ch-card"><div class="ch-n">CH 17</div><div class="ch-name">Fractions</div><div class="ch-pre">Butterfly method</div></div>
+    <div class="ch-card"><div class="ch-n">CH 18</div><div class="ch-name">Percentages</div><div class="ch-pre">The percentage triangle</div></div>
+    <div class="ch-card"><div class="ch-n">CH 19</div><div class="ch-name">Compound Interest</div><div class="ch-pre">Rule of 72</div></div>
+  </div>
+</div></section>
+
+<section style="border-top:1px solid var(--border)"><div class="wrap">
+  <div class="s-eye">How It Works</div>
+  <h2 class="s-title">Learn in layers.</h2>
+  <p class="s-sub">Every chapter follows the same sequence — your brain knows what to expect and can focus on the maths.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div><div class="step-title">Listen &amp; Read</div><div class="step-desc">A voice narrates every concept while you follow along. Learn with your eyes, your ears, or both.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div><div class="step-title">See the Method</div><div class="step-desc">Step-by-step breakdowns show exactly how the shortcut works — not just the answer, but why the pattern holds.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div><div class="step-title">Work Examples</div><div class="step-desc">Narrated worked examples. By the time the quiz starts you've seen the technique applied 3 times.</div></div></div>
+    <div class="step"><div class="step-num">4</div><div><div class="step-title">Practice Under Pressure</div><div class="step-desc">5 levels from Starter (90s/question) to Master (20s). Progress through each category at your own pace.</div></div></div>
+    <div class="step"><div class="step-num">5</div><div><div class="step-title">Race the Clock</div><div class="step-desc">3-minute race pulls from all your unlocked chapters. One global leaderboard. Compete with anyone.</div></div></div>
+  </div>
+</div></section>
+
+<section style="border-top:1px solid var(--border)"><div class="wrap">
+  <div class="s-eye">Built Different</div>
+  <h2 class="s-title">Everything you need.<br>Nothing you don't.</h2>
+  <div class="feat-grid">
+    <div class="feat"><div class="feat-icon">🎙</div><div class="feat-title">Audio Narration</div><div class="feat-desc">Every chapter has a voice that explains concepts as you read. Learn while commuting, phone face-down.</div></div>
+    <div class="feat"><div class="feat-icon">⏱</div><div class="feat-title">Radial Timer</div><div class="feat-desc">Circular countdown clock consistent across quiz, practice, and race. You always know exactly how much time remains.</div></div>
+    <div class="feat"><div class="feat-icon">🌍</div><div class="feat-title">Global Leaderboard</div><div class="feat-desc">Real-time scores from everyone playing the 3-minute race. Pick a display name and compete from day one.</div></div>
+    <div class="feat"><div class="feat-icon">📱</div><div class="feat-title">No Download</div><div class="feat-desc">Opens in your browser. Works offline. Add to home screen on Android or iPhone for a full app experience.</div></div>
+    <div class="feat"><div class="feat-icon">🔓</div><div class="feat-title">Unlock as You Go</div><div class="feat-desc">Chapters unlock as you complete quizzes. The techniques build on each other intentionally.</div></div>
+    <div class="feat"><div class="feat-icon">♿</div><div class="feat-title">Accessible</div><div class="feat-desc">WCAG AA contrast, ARIA timer labels, visible focus rings, and a sans-serif font chosen for readability.</div></div>
+  </div>
+</div></section>
+
+<section id="gumroad"><div class="wrap">
+  <div class="cta-block">
+    <div class="price-tag">✦ Free — pay what you want</div>
+    <h2>Start right now.<br>No signup required.</h2>
+    <p>Open it in your browser. Learn one chapter. See if it changes how you think about numbers.</p>
+    <a href="https://navyachandra14.github.io/uncalculatoraudiov1" class="btn-p" target="_blank">Open The Uncalculator →</a>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Built by Navya Chandra &nbsp;·&nbsp; <a href="https://navyachandra14.github.io/uncalculatoraudiov1">Open App</a> &nbsp;·&nbsp; <a href="https://gumroad.com" target="_blank">Support on Gumroad</a></p>
+</div></footer>
+
+</body>
+</html>
